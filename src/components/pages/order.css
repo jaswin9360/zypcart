@@ -1,0 +1,36 @@
+/* Base structural style for all badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize; /* Ensures "process" becomes "Process" */
+  display: inline-block;
+}
+
+/* 🟡 Processing / Process Status */
+.status-process, 
+.status-processing {
+  background-color: #fef3c7; /* Light amber background */
+  color: #d97706; /* Dark amber text */
+}
+
+/* 🟢 Success / Delivered Status */
+.status-success, 
+.status-delivered {
+  background-color: #dcfce7; /* Light green background */
+  color: #16a34a; /* Dark green text */
+}
+
+/* 🔴 Failed / Cancelled Status (Just in case!) */
+.status-failed,
+.status-cancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* ⚪ Default Fallback */
+.status-pending {
+  background-color: #f1f5f9;
+  color: #475569;
+}

@@ -1,0 +1,187 @@
+/* auth.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f4f7fc;
+}
+
+/* MAIN CONTAINER */
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* FORM */
+
+.container form {
+  width: 100%;
+  max-width: 450px;
+  background: white;
+  padding: 40px;
+  border-radius: 25px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* TITLE */
+
+.container form h2 {
+  text-align: center;
+  font-size: 38px;
+  color: #071437;
+  margin-bottom: 30px;
+}
+
+/* ROLE TOGGLE */
+
+.role-toggle {
+  width: 100%;
+  display: flex;
+  background: #f1f1f1;
+  border-radius: 50px;
+  padding: 5px;
+  margin-bottom: 30px;
+}
+
+.role-toggle button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.active-role {
+  background: #2563eb !important;
+  color: white;
+}
+
+/* INPUTS */
+
+.container form input {
+  width: 100%;
+  padding: 15px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  outline: none;
+  transition: 0.3s;
+}
+
+.container form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* BUTTON */
+
+.register-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: #2563eb;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+
+.register-btn:hover {
+  background: #1d4ed8;
+}
+
+/* OPTIONAL LINKS */
+
+.auth-links {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #2563eb;
+  font-size: 15px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+  .container form {
+    padding: 30px 25px;
+  }
+
+  .container form h2 {
+    font-size: 32px;
+  }
+
+  .role-toggle button {
+    font-size: 15px;
+    padding: 10px;
+  }
+
+  .container form input {
+    font-size: 15px;
+    padding: 14px 16px;
+  }
+
+  .register-btn {
+    font-size: 16px;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .container {
+    padding: 15px;
+  }
+
+  .container form {
+    padding: 25px 18px;
+    border-radius: 18px;
+  }
+
+  .container form h2 {
+    font-size: 28px;
+  }
+
+  .role-toggle {
+    padding: 4px;
+  }
+
+  .role-toggle button {
+    font-size: 14px;
+    padding: 9px;
+  }
+
+  .container form input {
+    font-size: 14px;
+    padding: 13px 14px;
+    border-radius: 12px;
+  }
+
+  .register-btn {
+    font-size: 15px;
+    padding: 13px;
+    border-radius: 12px;
+  }
+}

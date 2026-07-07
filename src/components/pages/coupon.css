@@ -1,0 +1,498 @@
+.seller-coupon-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.seller-coupon-container h2 {
+    margin-bottom: 5px;
+    color: #111827;
+}
+
+.subtitle {
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+
+.coupon-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.form-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: #374151;
+}
+
+.section-divider {
+    margin-top: 30px !important;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.form-group input, .form-group select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #2563eb;
+}
+
+.form-group small {
+    color: #6b7280;
+    margin-top: 4px;
+    font-size: 0.8rem;
+}
+
+.code-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.code-input-group input {
+    flex-grow: 1;
+}
+
+.generate-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 15px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.generate-btn:hover {
+    background: #e5e7eb;
+}
+
+/* Product Selection Area */
+.helper-text {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: -15px;
+    margin-bottom: 15px;
+}
+
+.product-list-container {
+    max-height: 450px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 5px;
+}
+
+.product-select-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.product-select-card:hover {
+    border-color: #9ca3af;
+}
+
+.product-select-card.selected {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.product-select-card input {
+    margin-right: 15px;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.product-select-card img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+
+.product-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+}
+
+.product-info p {
+    margin: 0;
+    color: #16a34a;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Bottom Actions */
+.full-width-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.submit-coupon-btn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    max-width: 400px;
+}
+
+.submit-coupon-btn:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+.submit-coupon-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.message-banner {
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.message-banner.success {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.message-banner.error {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+@media (max-width: 768px) {
+    .coupon-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.scratch-wrapper {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+}
+
+/* Challenge Grid */
+.coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.challenge-card {
+    background: #fff;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.challenge-card:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+    transform: translateY(-2px);
+}
+
+.prize-tag {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: #16a34a;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.question-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 15px 0;
+}
+
+.play-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Active Challenge */
+.back-btn {
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.answer-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.answer-form input {
+    padding: 12px;
+    width: 300px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.answer-form button {
+    padding: 12px 24px;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.error-text {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+.success-text {
+    color: #16a34a;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+/* The Magic Scratch Card Area */
+.scratch-area {
+    position: relative;
+    width: 300px;
+    height: 150px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.revealed-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1; /* Underneath the canvas */
+}
+
+.prize-amount {
+    font-size: 1.2rem;
+    color: #4b5563;
+}
+
+.code {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #111827;
+    letter-spacing: 2px;
+    margin: 5px 0;
+}
+
+.copy-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2; /* On top of the text */
+    cursor: crosshair;
+    touch-action: none; /* Prevents mobile pull-to-refresh while scratching */
+}
+
+.claimed-card {
+    border-color: #fbbf24 !important; /* Gold border */
+    background: #fffbeb !important; /* Light yellow background */
+    cursor: default !important;
+    transform: none !important;
+}
+
+.claimed-tag {
+    background: #d97706 !important; /* Darker gold for the tag */
+}
+
+.revealed-code-text {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #111827;
+    letter-spacing: 2px;
+    margin: 10px 0 15px 0;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed #fbbf24;
+}
+
+.expiry-text {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+.outline-btn {
+    background: transparent;
+    color: #d97706;
+    border: 2px solid #d97706;
+    font-weight: 600;
+}
+
+.outline-btn:hover {
+    background: #d97706;
+    color: white;
+}
+/* Seller and Product Text Info */
+.provider-text {
+    font-size: 0.85rem;
+    color: #4f46e5;
+    background: #e0e7ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 15px;
+    margin-top: 5px;
+}
+
+.applicable-products-text {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncates long product lists with ... */
+    padding: 0 10px;
+}
+
+/* Collect Reward Button */
+.collect-section {
+    margin-top: 25px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+}
+
+.collect-section.show-collect {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.collect-reward-btn {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Celebration Animation Overlay */
+.scratch-wrapper.celebrating .active-challenge {
+    animation: celebratePop 1.5s ease-out forwards;
+}
+
+@keyframes celebratePop {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}

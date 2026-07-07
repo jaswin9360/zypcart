@@ -1,0 +1,1361 @@
+/* ==========================================================================
+   GLOBAL RESET & BASE STYLES
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8fafc;
+  color: #334155;
+}
+.nav-brand img {
+  height: 40px; /* Adjust this to fit your navbar */
+  width: auto;  /* Keeps the logo from stretching */
+  display: block;
+}
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Typography & Utility Classes */
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.text-muted { color: #64748b; }
+.text-dark { color: #1e293b; }
+.text-primary { color: #2563eb; }
+.text-success { color: #16a34a; }
+.text-danger { color: #dc2626; }
+.text-strike { text-decoration: line-through; }
+.text-center { text-align: center; }
+.text-sm { font-size: 0.85rem; }
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+.full-width { width: 100%; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+
+/* Buttons */
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+.btn-secondary {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-secondary:hover { background: #f1f5f9; }
+
+.btn-success {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-success:hover { background: #15803d; }
+
+.text-link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   HEADER & NAVIGATION
+   ========================================================================== */
+.sandbox-header {
+  background: #f1f5f9;
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sandbox-title {
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.toggle-btn:first-child { border-radius: 4px 0 0 4px; border-right: none; }
+.toggle-btn:last-child { border-radius: 0 4px 4px 0; }
+.toggle-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+.config-banner {
+  background: #3b82f6;
+  color: #fff;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 4px 0;
+}
+
+.main-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 16px;
+}
+
+.nav-brand {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #2563eb;
+}
+
+.nav-search {
+  flex: 1;
+  max-width: 500px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.nav-item {
+  position: relative;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-item {
+  position: relative;
+}
+
+.cart-badge {
+  background: #ef4444;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  position: absolute;
+  top: -10px;
+  right: -15px;
+}
+
+.user-profile-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: 130%;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 100;
+  padding: 8px 0;
+}
+
+.dropdown-header {
+  padding: 6px 16px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.dropdown-item {
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #334155;
+  cursor: pointer;
+}
+.dropdown-item:hover { background: #f8fafc; }
+
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 6px 0;
+}
+
+.logout-btn { color: #ef4444; font-weight: 600; }
+
+/* ==========================================================================
+   SELLER DASHBOARD LAYOUT
+   ========================================================================== */
+.seller-dashboard-layout {
+  display: flex;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.seller-sidebar {
+  width: 240px;
+  background: #fff;
+  padding: 20px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.sidebar-brand {
+  font-weight: bold;
+  font-size: 1.25rem;
+  margin-bottom: 24px;
+  color: #2563eb;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+.menu-item:hover { background: #f1f5f9; }
+.menu-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+.logout-accent { color: #ef4444; margin-top: auto; }
+
+.seller-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.seller-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.seller-title {
+  text-transform: capitalize;
+  color: #1e293b;
+  font-size: 1.5rem;
+}
+
+/* Seller Metrics & Cards */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.metric-card {
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-icon-box { font-size: 2rem; }
+.metric-label { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+.metric-data h3 { font-size: 1.5rem; margin-top: 4px; color: #1e293b; }
+
+.blue-tint { border-left: 4px solid #3b82f6; }
+.green-tint { border-left: 4px solid #10b981; }
+.purple-tint { border-left: 4px solid #8b5cf6; }
+.pink-tint { border-left: 4px solid #ec4899; }
+.orange-tint { border-left: 4px solid #f97316; }
+
+/* Seller Panels & Tables */
+.dashboard-panel {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.panel-margin { margin-top: 24px; }
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.panel-header h3 { color: #1e293b; font-size: 1.1rem; }
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+.data-table th, .data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+.data-table th {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: #f8fafc;
+}
+
+.table-img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.type-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.type-sell { color: #2563eb; }
+.type-other { color: #ea580c; }
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+.status-badge.active { background: #dcfce7; color: #166534; }
+.status-badge.processing { background: #fef3c7; color: #b45309; }
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn-action {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-action.edit { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+.btn-action.delete { background: #ef4444; color: #ffffff; }
+
+/* Visual Allocations */
+.visual-allocation-box {
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.box-title {
+  margin-bottom: 16px;
+  color: #1e293b;
+  font-size: 1rem;
+}
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: #2563eb;
+  transition: width 0.5s ease;
+}
+
+/* ==========================================================================
+   BUYER MARKETPLACE
+   ========================================================================== */
+.marketplace-container {
+  padding: 40px 24px;
+  background-color: #f8fafc;
+  flex: 1;
+}
+
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.product-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-container {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.product-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.product-title {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.discount-badge {
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-size: 0.70rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-bottom: 12px;
+}
+
+.product-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.mrp-price {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+.deal-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.product-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   MODALS
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.specs-modal { max-width: 440px; }
+.form-modal { max-width: 540px; max-height: 90vh; }
+
+.modal-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.specs-header { background: #ba415d; color: #fff; }
+.light-header { border-bottom: 1px solid #f1f5f9; }
+
+.modal-title { margin: 0; font-size: 1.25rem; }
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.specs-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+}
+
+.modal-body { padding: 24px; }
+.modal-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+
+/* Specs Table */
+.specs-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+.specs-table tr { border-bottom: 1px solid #f1f5f9; display: flex; }
+.spec-label {
+  color: #ba415d;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 12px 12px 12px 0;
+  text-transform: uppercase;
+  flex: 1;
+}
+.spec-value {
+  color: #334155;
+  font-weight: 500;
+  padding: 12px 0;
+  flex: 2;
+}
+
+/* =========================================
+   GSM Tech Specs Modal (Responsive)
+   ========================================= */
+
+/* The dark background overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px; /* Prevents the modal from touching screen edges on mobile */
+}
+
+/* The actual modal box */
+.specs-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px; /* Caps the width on desktop */
+  max-height: 85vh; /* Prevents it from getting taller than the screen */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Modal Header */
+.specs-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.specs-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.specs-close {
+  background: transparent;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Modal Body (This is the part that scrolls!) */
+.specs-modal .modal-body {
+  padding: 24px;
+  overflow-y: auto; /* Adds a scrollbar ONLY if the specs are very long */
+}
+
+/* Responsive Table */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Prevents long text from breaking the table width */
+}
+
+.specs-table tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.spec-label {
+  width: 40%;
+  padding: 12px 8px 12px 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.spec-value {
+  width: 60%;
+  padding: 12px 0 12px 8px;
+  color: #334155;
+  font-size: 0.95rem;
+  word-wrap: break-word; /* Forces long strings to wrap on small mobile screens */
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+/* Form Styles */
+.form-error { background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.form-label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+.form-input { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; }
+
+.promo-override-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; }
+.promo-label { font-size: 0.75rem; color: #166534; font-weight: 800; display: block; margin-bottom: 8px; }
+.promo-input-group { display: flex; gap: 8px; }
+
+.specifications-box { border: 1px dashed #cbd5e1; padding: 16px; border-radius: 8px; background: #f8fafc; }
+.specs-header-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.specs-label { font-weight: 700; font-size: 0.8rem; color: #334155; }
+.spec-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.btn-remove { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0 4px; }
+
+.form-actions { display: flex; gap: 12px; margin-top: 10px; }
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Navigation */
+  .main-nav-bar { flex-direction: column; align-items: flex-start; padding: 16px; }
+  .nav-search { width: 100%; max-width: 100%; margin: 10px 0; }
+  .nav-actions { width: 100%; justify-content: space-between; }
+  
+  /* Seller Layout */
+  .seller-dashboard-layout { flex-direction: column; }
+  .seller-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+  .sidebar-menu { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .menu-item { font-size: 0.85rem; padding: 8px 12px; flex: 1; text-align: center; }
+  
+  /* Seller Content */
+  .seller-content { padding: 16px; }
+  .seller-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  
+  /* Forms */
+  .form-row { flex-direction: column; gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .marketplace-container { padding: 20px 12px; }
+  .marketplace-grid { grid-template-columns: 1fr; }
+  .sandbox-header { flex-direction: column; gap: 12px; }
+}
+/* Base structural style for all badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize; /* Ensures "process" becomes "Process" */
+  display: inline-block;
+}
+
+/* 🟡 Processing / Process Status */
+.status-process, 
+.status-processing {
+  background-color: #fef3c7; /* Light amber background */
+  color: #d97706; /* Dark amber text */
+}
+
+/* 🟢 Success / Delivered Status */
+.status-success, 
+.status-delivered {
+  background-color: #dcfce7; /* Light green background */
+  color: #16a34a; /* Dark green text */
+}
+
+/* 🔴 Failed / Cancelled Status (Just in case!) */
+.status-failed,
+.status-cancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* ⚪ Default Fallback */
+.status-pending {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+/* =========================================
+   Zypcart  Global Footer
+   ========================================= */
+
+.Zypcart-footer {
+  background-color: #0f172a; /* Dark Slate Background */
+  color: #f8fafc;
+  padding-top: 60px;
+  margin-top: auto; /* Pushes footer to bottom if page content is short */
+  font-family: inherit;
+  border-top: 4px solid #2563eb; /* Brand Blue Accent Line */
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px; /* Forces wrapping on smaller screens */
+}
+
+.brand-section {
+  flex: 2; /* Gives the brand description slightly more horizontal space */
+}
+
+.footer-brand {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.footer-description {
+  color: #94a3b8;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  max-width: 350px;
+}
+
+.footer-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #f8fafc;
+}
+
+.footer-links, .social-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-links a, .social-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: inline-block;
+}
+
+.footer-links a:hover, .social-links a:hover {
+  color: #38bdf8; /* Light Blue Hover State */
+  transform: translateX(4px); /* Slight bump to the right on hover */
+}
+
+.footer-bottom {
+  background-color: #020617; /* Even darker slate for the absolute bottom */
+  text-align: center;
+  padding: 20px;
+  margin-top: 60px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .brand-section {
+    margin-bottom: 10px;
+  }
+}
+/* =========================================
+   Jumping Arrow Animation
+   ========================================= */
+@keyframes jumpBounce {
+  0%, 100% {
+    transform: translateY(-5px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.jumping-arrow {
+  width: 48px;
+  height: 48px;
+  fill: #ffffff; /* White arrow */
+  animation: jumpBounce 1.5s infinite ease-in-out;
+}
+/* =========================================
+   Apple-Style Glass Button
+   ========================================= */
+.apple-glass-btn {
+  padding: 12px 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #334155; /* Slate text so it's readable on light backgrounds */
+  cursor: pointer;
+  
+  /* The Glass Magic */
+  background: rgba(255, 255, 255, 0.45); /* Milky translucent white */
+  backdrop-filter: blur(24px) saturate(150%); /* Heavy blur + color pop */
+  -webkit-backdrop-filter: blur(24px) saturate(150%); /* Safari Support (Crucial) */
+  
+  /* The Apple Hairline Edge */
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px; /* Perfect pill shape */
+  
+  /* Subtle Depth */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Smooth Hover Animation */
+.apple-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.65);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+/* =========================================
+   Pagination & Background Controls
+   ========================================= */
+
+.bg-uploader-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bg-upload-btn, .btn-remove-bg {
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.btn-remove-bg {
+  background: rgba(254, 226, 226, 0.9);
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 0;
+}
+
+.page-btn {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.page-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.page-indicator {
+  font-weight: 600;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+/* =========================================
+   Animations & Readability Adjustments
+   ========================================= */
+
+/* Smooth Slide-up and Fade-in Animation */
+@keyframes slideFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-animation {
+  animation: slideFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Protect card readability over custom user backgrounds */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+
+
+
+
+/* ==================================================================
+   Zypcart  SMART ASSIST V3.0 - CYBER ROSE CRIMSON & OBSIDIAN THEME
+   ================================================================== */
+
+.sri-ai-container {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Luxury Glowing Floating Action Button */
+.sri-fab {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sri-fab:hover {
+  transform: scale(1.08);
+}
+
+.sri-core {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #18181b, #27272a);
+  border: 2px solid #ba415d;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  box-shadow: 0 0 20px rgba(186, 65, 93, 0.6);
+}
+
+.sri-icon {
+  font-size: 40px; /* Matches the logo height */
+  filter: drop-shadow(0 0 4px #ba415d);
+  display: inline-block; /* Allows it to sit next to text/logo */
+  vertical-align: middle; /* Keeps it centered vertically */
+}
+
+.sri-logo {
+  height: 40px;
+  width: auto;
+  filter: drop-shadow(0 0 4px #ba415d); /* Adds the exact same glow as the icon */
+  display: inline-block; /* Changed from block so it doesn't drop to a new line */
+  vertical-align: middle; /* Keeps it aligned perfectly with the icon */
+}
+
+.sri-glow-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #ba415d;
+  animation: sriCrimsonPulse 2.2s infinite ease-out;
+  z-index: 1;
+}
+
+@keyframes sriCrimsonPulse {
+  0% { transform: scale(0.85); opacity: 1; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+/* Obsidian Glassmorphic Panel Layout */
+.sri-panel {
+  width: 350px;
+  height: 480px;
+  background: rgba(24, 24, 27, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(186, 65, 93, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 30px rgba(186, 65, 93, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sriWindowOpen 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: bottom right;
+}
+
+@keyframes sriWindowOpen {
+  0% { opacity: 0; transform: scale(0.82) translateY(15px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.sri-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(10, 10, 12, 0.5);
+  border-bottom: 1px solid rgba(186, 65, 93, 0.25);
+}
+
+.sri-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f4f4f5;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.sri-dot-pulse {
+  width: 7px;
+  height: 7px;
+  background: #ba415d;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ba415d;
+  animation: sriAlertBlink 1.2s infinite alternate;
+}
+
+@keyframes sriAlertBlink {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+
+.sri-close {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sri-close:hover {
+  color: #f4f4f5;
+}
+
+/* Chat Log Stream */
+.sri-chat-log {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sri-chat-log::-webkit-scrollbar {
+  width: 4px;
+}
+.sri-chat-log::-webkit-scrollbar-thumb {
+  background: #ba415d;
+  border-radius: 4px;
+}
+
+.sri-msg {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.sri-msg.ai {
+  align-self: flex-start;
+  background: rgba(186, 65, 93, 0.08);
+  color: #e4e4e7;
+  border-top-left-radius: 2px;
+  border: 1px solid rgba(186, 65, 93, 0.2);
+}
+
+.sri-msg.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #ba415d, #9d314b);
+  color: #ffffff;
+  border-top-right-radius: 2px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(186, 65, 93, 0.3);
+}
+
+/* Action Chips Matrix */
+.sri-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.sri-quick-actions button {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(186, 65, 93, 0.4);
+  color: #f4f4f5;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sri-quick-actions button:hover {
+  background: #ba415d;
+  border-color: #ba415d;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Form Command Console */
+.sri-input-box {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(186, 65, 93, 0.2);
+  background: rgba(10, 10, 12, 0.4);
+  align-items: center;
+}
+
+.sri-input-box input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 18px;
+  outline: none;
+  font-size: 0.82rem;
+  transition: border-color 0.25s;
+}
+
+.sri-input-box input:focus {
+  border-color: #ba415d;
+}
+
+.sri-input-box button {
+  background: linear-gradient(135deg, #ba415d, #9d314b);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.95rem;
+  transition: transform 0.2s;
+  box-shadow: 0 0 10px rgba(186, 65, 93, 0.4);
+}
+
+.sri-input-box button:hover {
+  transform: scale(1.06);
+}
+/* ==================================================================
+   PRODUCT IMAGE DOTS & SELLER LABEL STYLING
+   ================================================================== */
+
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dots wrapper placed at the bottom of the image */
+.image-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+/* Base Dot Style */
+.image-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+/* Active Dot uses the brand color you requested */
+.image-dots .dot.active {
+  background: #ba415d;
+  transform: scale(1.2);
+}
+
+.image-dots .dot:hover {
+  background: #ffffff;
+}
+
+/* Sold by Info Text Styling */
+.product-seller-info {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: -6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.product-seller-info .seller-name {
+  font-weight: 600;
+  color: #334155;
+}

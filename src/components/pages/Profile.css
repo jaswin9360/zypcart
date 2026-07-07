@@ -1,0 +1,610 @@
+/* Container to center the profile card nicely on your page view */
+.profile-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f8fafc; /* Subtle, light workspace background */
+  font-family: system-ui, -apple-system, sans-serif;
+  padding: 20px;
+}
+
+/* Base Card Presentation Structure */
+.profile-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 24px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Circular Letter Portrait Graphic */
+.profile-avatar-large {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #3a86c8 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+/* Text Hierarchy Content */
+.profile-welcome-text {
+  font-size: 1.5rem;
+  color: #1e293b;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+/* Badge Layout Pill Pill Designs */
+.profile-role-wrapper {
+  margin-bottom: 24px;
+}
+.role-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 30px;
+}
+/* Buyer Custom Accents */
+.badge-buyer {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+/* Seller Custom Accents */
+.badge-seller {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* Horizontal Line Breakdown Accent */
+.profile-actions-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 24px 0;
+}
+
+/* Role verification alert action banners */
+.role-action-promo {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.role-action-promo p {
+  margin: 0 0 12px 0;
+}
+.buyer-promo {
+  background-color: #f8fafc;
+  border-left: 4px solid #3a86c8;
+  color: #475569;
+}
+.seller-promo {
+  background-color: #fafafa;
+  border-left: 4px solid #16a34a;
+  color: #475569;
+}
+
+/* Interactive Promo Call-To-Action Switches */
+.promo-btn {
+  width: 100%;
+  border: none;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.action-buyer {
+  background-color: #2563eb;
+  color: white;
+}
+.action-buyer:hover {
+  background-color: #1d4ed8;
+}
+.action-seller {
+  background-color: #16a34a;
+  color: white;
+}
+.action-seller:hover {
+  background-color: #15803d;
+}
+
+/* Main Profile Logout Control Utility Button */
+.profile-logout-btn {
+  background: none;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  width: 100%;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.profile-logout-btn:hover {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #ef4444;
+}
+/* Position alignment for the new structural card context */
+.profile-card {
+  position: relative; /* Essential to allow absolute anchoring of the back button arrow */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 24px 32px 24px; /* Added additional top padding to clear space for the arrow */
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Floating Back Button Control styling */
+.profile-back-arrow {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.profile-back-arrow .back-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* Hover effects for clean micro-interactions */
+.profile-back-arrow:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.profile-back-arrow:hover .back-text {
+  color: #1e293b;
+}
+.profile-locked-container, .verification-sub-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.pin-form label, .verification-sub-card p {
+  font-size: 0.9rem;
+  color: #495057;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pin-form input, .verification-sub-card input, .profile-password-mock-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.profile-password-mock-input {
+  width: 60%;
+  margin-bottom: 0;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.account-secure-details {
+  text-align: left;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid #20c997;
+  margin-top: 15px;
+}
+
+.password-display-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.toggle-pwd-btn, .change-pwd-link-btn {
+  background: none;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.change-pwd-link-btn {
+  margin-top: 5px;
+  width: 100%;
+}
+
+.deactivate-seller-btn {
+  background-color: #dc3545 !important;
+  color: white;
+}\.profile-locked-container, .verification-sub-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.pin-form label, .verification-sub-card p {
+  font-size: 0.9rem;
+  color: #495057;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pin-form input, .verification-sub-card input, .profile-password-mock-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.profile-password-mock-input {
+  width: 60%;
+  margin-bottom: 0;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.account-secure-details {
+  text-align: left;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid #20c997;
+  margin-top: 15px;
+}
+
+.password-display-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.toggle-pwd-btn, .change-pwd-link-btn {
+  background: none;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.change-pwd-link-btn {
+  margin-top: 5px;
+  width: 100%;
+}
+
+.deactivate-seller-btn {
+  background-color: #dc3545 !important;
+  color: white;
+}
+.profile-locked-container, .verification-sub-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.pin-form label, .verification-sub-card p {
+  font-size: 0.9rem;
+  color: #495057;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pin-form input, .verification-sub-card input, .profile-password-mock-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.profile-password-mock-input {
+  width: 60%;
+  margin-bottom: 0;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.account-secure-details {
+  text-align: left;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid #20c997;
+  margin-top: 15px;
+}
+
+.password-display-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.toggle-pwd-btn, .change-pwd-link-btn, .change-pin-link-btn {
+  background: none;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.change-pin-link-btn {
+  border: 1px solid #6c757d;
+  color: #495057;
+  flex: 1;
+}
+
+.change-pwd-link-btn {
+  flex: 1;
+}
+
+.deactivate-seller-btn {
+  background-color: #dc3545 !important;
+  color: white;
+}
+/* --- Core Structural Layout Grid --- */
+.profile-unlocked-layout-grid {
+  display: flex;
+  gap: 30px;
+  margin-top: 25px;
+  width: 100%;
+}
+
+/* Base columns styling */
+.profile-left-column,
+.profile-right-column {
+  flex: 1 1 0%; /* Forces equal column sizing on desktop split views */
+  min-width: 0;   /* CRITICAL: Prevents inner flex items from breaking layout bounds */
+  text-align: left;
+}
+
+/* Border separator layout styling between the columns */
+.profile-right-column.address-management-section {
+  border-left: 1px solid #e7e7e7;
+  padding-left: 30px;
+}
+
+/* --- Address Container Elements --- */
+.address-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Individual Address Cards */
+.address-card-wrapper {
+  padding: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #d5d9d9;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't cause overflow additions */
+}
+
+.address-card-wrapper.selected {
+  background-color: #f7f9fa;
+  border-color: #a8acac;
+}
+
+/* --- Amazon Custom Standard Buttons --- */
+.address-management-section button {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  border: 1px solid #a8acac;
+  border-radius: 100px; /* Perfect pill shape */
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(213, 217, 217, 0.3);
+  transition: all 0.15s ease-in-out;
+  box-sizing: border-box; /* Fixes button breaking out of parent card box bounds */
+}
+
+.address-management-section button:hover {
+  background-color: #f7f9fa;
+  border-color: #8d9090;
+}
+
+.address-management-section button:active {
+  background-color: #f0f2f2;
+  box-shadow: none;
+}
+
+/* --- Ultra-Small Screens Optimization (Below 360px) --- */
+@media (max-width: 360px) {
+  /* Shrink outer container pads so text fields have maximum horizontal room */
+  .profile-card {
+    padding: 10px !important;
+    width: 98% !important;
+  }
+
+  /* Reduce spacing on your grid column layout wrappers */
+  .profile-unlocked-layout-grid {
+    gap: 20px !important;
+    margin-top: 15px !important;
+  }
+
+  /* Compress individual address cards padding gaps */
+  .address-card-item {
+    padding: 10px !important;
+  }
+
+  /* Shrink text layouts inside address elements slightly to prevent line-wrapping clutter */
+  .address-list-container h3, 
+  .address-management-section h3 {
+    font-size: 1.05rem !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Target text node elements inside address details */
+  .address-card-item p,
+  .address-card-item span,
+  .address-form-box label {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Adjust gap spacing between the Radio selection node and text blocks */
+  .address-card-item > div {
+    gap: 8px !important;
+  }
+
+  /* Scale down the radio input element slightly to look balanced with smaller text strings */
+  .address-card-item input[type="radio"] {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Shift inline button block to the left slightly to align with text */
+  .address-card-item div[style*="paddingLeft"] {
+    padding-left: 24px !important;
+    margin-top: 10px !important;
+  }
+
+  /* Optimize the Amazon pill button padding so text strings stay safely centered */
+  .amazon-pill-btn,
+  .address-card-item button,
+  .address-management-section button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Optimize inputs within forms for tight layout boundaries */
+  .address-form-box {
+    padding: 12px !important;
+  }
+
+  .address-form-box input {
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+  }
+}

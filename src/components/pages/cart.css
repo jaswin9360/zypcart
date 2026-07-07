@@ -1,0 +1,402 @@
+/* --- Core Page Component Architecture --- */
+.cart-page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+.cart-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 16px;
+}
+
+.back-to-store-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cart-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+/* --- Flexible Desktop Layout Side Split Deck Columns --- */
+.cart-layout-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+.cart-items-collection-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cart-item-row-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.cart-item-image-box {
+  width: 100px;
+  height: 100px;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cart-item-image-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cart-item-details-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cart-item-category-tag {
+  font-size: 0.72rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.cart-item-details-box h4 {
+  margin: 4px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ==================================================================
+   ⏳ ADVANCED EXPIRED TICKER CHIP OVERRIDES
+   ================================================================== */
+.cart-ttl-countdown-ticker {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+.time-highlight-span {
+  font-family: monospace, monospace;
+  /* Monospace font prevents text-jitter during active shifts */
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.cart-item-delete-link {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.cart-item-delete-link:hover {
+  color: #ef4444;
+}
+
+/* --- Stepper Controls --- */
+.cart-item-quantity-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 110px;
+}
+
+.cart-item-quantity-deck label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.quantity-stepper-control {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.quantity-stepper-control button {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #334155;
+  font-weight: bold;
+}
+
+.quantity-stepper-control button:hover {
+  background: #e2e8f0;
+}
+
+.qty-counter-value {
+  width: 36px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cart-item-pricing-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 110px;
+}
+
+.cart-item-deal-price {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cart-item-mrp-crossed {
+  font-size: 0.825rem;
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+/* --- Fixed Checkout Panel Sheet --- */
+.cart-receipt-summary-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.cart-receipt-summary-panel h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.receipt-calculations-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.receipt-calc-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.925rem;
+  color: #475569;
+}
+
+.receipt-calc-row.promo-savings-deduction {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.shipping-free-tag {
+  color: #16a34a;
+  font-weight: 700;
+  background: #dcfce7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.receipt-calc-row.ultimate-total-row {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.final-bill-price {
+  font-size: 1.35rem;
+}
+
+.receipt-action-buttons-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.receipt-action-buttons-deck button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.checkout-payment-btn {
+  /* Layout */
+  display: block;
+  width: 100%;
+  padding: 16px;
+
+  /* Appearance */
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+
+  /* Typography */
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  /* Interaction */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.checkout-payment-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+  transform: translateY(-2px);
+}
+
+.checkout-payment-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.checkout-payment-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.download-invoice-manifest-btn {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+/* --- Empty Fallback Deck View --- */
+.empty-cart-fallback {
+  padding: 60px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 460px;
+  margin: 40px auto;
+}
+
+.empty-icon-cloud {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+}
+
+.empty-cart-fallback h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.3rem;
+}
+
+.empty-cart-fallback p {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0 0 20px 0;
+}
+
+.shop-now-cta-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- Touch Mobile Optimization Media Breakpoint Cores (< 768px) --- */
+@media (max-width: 768px) {
+  .cart-page-wrapper {
+    padding: 16px;
+  }
+
+  .cart-layout-split-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .cart-item-row-card {
+    flex-wrap: wrap;
+    position: relative;
+    padding-bottom: 54px;
+    gap: 12px;
+  }
+
+  .cart-item-image-box {
+    width: 75px;
+    height: 75px;
+  }
+
+  .cart-item-quantity-deck {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 8px;
+    min-width: unset;
+  }
+
+  .cart-item-pricing-box {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    min-width: unset;
+  }
+}
