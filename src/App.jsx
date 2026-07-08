@@ -8,7 +8,6 @@ import Cart from './components/pages/Cart';
 import Checkout from './components/pages/Checkout';
 import Profile from './components/pages/Profile';
 import Orders from "./components/pages/orders"
-import Test from "./components/pages/test"
 import ProtectedRoute from './components/Navbar/ProtectedRoute';
 import Coupon from './components/pages/coupon';
 
@@ -25,7 +24,6 @@ function App() {
           <Route path='/orders' element={<Orders />} />
           <Route path='/checkout' element={<Checkout />} />
           <Route path='/coupon' element={<Coupon/>} />
-          <Route path='/test' element={<Test/>} />
           <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>

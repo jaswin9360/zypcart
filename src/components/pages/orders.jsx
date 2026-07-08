@@ -31,7 +31,7 @@ const OrderHistory = () => {
     ];
 
     useEffect(() => {
-        fetch(`https://zypcart-user-backend.onrender.com/api/products/marketplace`)
+        fetch(`https://zypcart-product-backend.onrender.com/api/products/marketplace`)
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch marketplace');
                 return res.json();
@@ -72,7 +72,7 @@ const OrderHistory = () => {
     // Helper: Silently update order status in the backend
     const autoUpdateStatusToDelivered = async (orderId) => {
         try {
-            await fetch(`https://zypcart-user-backend.onrender.com/api/products/orders/status/${orderId}`, {
+            await fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/status/${orderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Delivered', deliveredAt: new Date().toISOString() })
@@ -84,7 +84,7 @@ const OrderHistory = () => {
 
     const fetchOrders = () => {
         setLoading(true);
-        fetch(`https://zypcart-user-backend.onrender.com/api/products/orders/buyer/${buyerId}`)
+        fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/buyer/${buyerId}`)
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch orders');
                 return res.json();
@@ -134,7 +134,7 @@ const OrderHistory = () => {
         setIsProcessing(true);
         
         try {
-            const res = await fetch(`https://zypcart-user-backend.onrender.com/api/products/orders/checkout/${activeOrderToPay._id}`, {
+            const res = await fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/checkout/${activeOrderToPay._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

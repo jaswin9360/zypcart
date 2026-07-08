@@ -16,7 +16,7 @@ export default function Cart() {
 
     const fetchDBCart = async () => {
         try {
-            const response = await fetch(`https://zypcart-user-backend.onrender.com/api/cart/${activeUserId}`);
+            const response = await fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`);
             if (response.ok) {
                 const data = await response.json();
                 setDbCartItems(Array.isArray(data) ? data : []);
@@ -81,7 +81,7 @@ export default function Cart() {
         }
 
         try {
-            await fetch('https://zypcart-user-backend.onrender.com/api/cart', {
+            await fetch('https://zypcart-product-backend.onrender.com/api/cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: activeUserId, productId, quantity: targetQty })
@@ -94,7 +94,7 @@ export default function Cart() {
 
     const handleRemoveItem = async (productId) => {
         try {
-            await fetch(`https://zypcart-user-backend.onrender.com/api/cart/${activeUserId}/${productId}`, { method: 'DELETE' });
+            await fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}/${productId}`, { method: 'DELETE' });
             fetchDBCart();
         } catch (err) {
             console.error(err);
@@ -105,7 +105,7 @@ export default function Cart() {
         if (activeCartItems.length === 0) return;
         setIsProcessingCheckout(true);
         try {
-            const response = await fetch('https://zypcart-user-backend.onrender.com/api/products/orders/checkout', {
+            const response = await fetch('https://zypcart-product-backend.onrender.com/api/products/orders/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

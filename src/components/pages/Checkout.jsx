@@ -45,7 +45,7 @@ export default function Checkout() {
     useEffect(() => {
         const fetchDBCart = async () => {
             try {
-                const response = await fetch(`https://zypcart-user-backend.onrender.com/api/cart/${activeUserId}`);
+                const response = await fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`);
                 if (response.ok) {
                     const data = await response.json();
                     setcartItems(Array.isArray(data) ? data : []);
@@ -63,7 +63,7 @@ export default function Checkout() {
         const fetchAddresses = async () => {
             if (!activeUserId) return setLoading(false);
             try {
-                const res = await fetch(`https://zypcart-user-backend.onrender.com/api/auth/${activeUserId}/addresses`);
+                const res = await fetch(`https://zypcart-product-backend.onrender.com/api/auth/${activeUserId}/addresses`);
                 const data = await res.json();
                 if (res.ok) {
                     setAddresses(data.addresses || []);
@@ -85,7 +85,7 @@ export default function Checkout() {
         
         try {
             console.log("hee")
-            const response = await fetch('https://zypcart-user-backend.onrender.com/api/coupons/validate', {
+            const response = await fetch('https://zypcart-product-backend.onrender.com/api/coupons/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -155,7 +155,7 @@ export default function Checkout() {
     };
 
     const processCheckoutAPI = async () => {
-        const response = await fetch('https://zypcart-user-backend.onrender.com/api/products/orders/checkout', {
+        const response = await fetch('https://zypcart-product-backend.onrender.com/api/products/orders/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)

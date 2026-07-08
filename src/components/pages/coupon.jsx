@@ -26,7 +26,7 @@ function SellerCouponView({ user, sellerId }) {
         const fetchSellerProducts = async () => {
             if (!sellerId) return;
             try {
-                const res = await fetch(`https://zypcart-user-backend.onrender.com/api/products/user-dashboard/${sellerId}`);
+                const res = await fetch(`https://zypcart-product-backend.onrender.com/api/products/user-dashboard/${sellerId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setProducts(data);
@@ -75,7 +75,7 @@ function SellerCouponView({ user, sellerId }) {
         };
 
         try {
-            const res = await fetch('https://zypcart-user-backend.onrender.com/api/coupons/create', {
+            const res = await fetch('https://zypcart-product-backend.onrender.com/api/coupons/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -213,8 +213,8 @@ function BuyerCouponView({ activeUserId }) {
         const fetchCoupons = async () => {
             try {
                 const url = activeUserId 
-                    ? `https://zypcart-user-backend.onrender.com/api/coupons/active?userId=${activeUserId}`
-                    : `https://zypcart-user-backend.onrender.com/api/coupons/active`;
+                    ? `https://zypcart-product-backend.onrender.com/api/coupons/active?userId=${activeUserId}`
+                    : `https://zypcart-product-backend.onrender.com/api/coupons/active`;
                     
                 const res = await fetch(url);
                 if (res.ok) {
@@ -235,7 +235,7 @@ function BuyerCouponView({ activeUserId }) {
         
         if (userAnswer.trim().toLowerCase() === selectedCoupon.answer.toLowerCase()) {
             try {
-                const res = await fetch('https://zypcart-user-backend.onrender.com/api/coupons/claim', {
+                const res = await fetch('https://zypcart-product-backend.onrender.com/api/coupons/claim', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ couponId: selectedCoupon._id, userId: activeUserId })

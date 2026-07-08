@@ -183,7 +183,7 @@ export default function Products() {
 
 
   useEffect(() => {
-    fetch(`https://zypcart-user-backend.onrender.com/api/products/orders/seller/${activeUserId}`)
+    fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
@@ -216,10 +216,10 @@ export default function Products() {
 
   // Sync component catalog dataset directly with remote REST APIs
   const syncInventoryCatalog = async () => {
-    let endpoint = 'https://zypcart-user-backend.onrender.com/api/products/marketplace';
+    let endpoint = 'https://zypcart-product-backend.onrender.com/api/products/marketplace';
 
     if (isSeller && view === 'seller') {
-      endpoint = `https://zypcart-user-backend.onrender.com/api/products/user-dashboard/${activeUserId}`;
+      endpoint = `https://zypcart-product-backend.onrender.com/api/products/user-dashboard/${activeUserId}`;
     }
 
     try {
@@ -236,7 +236,7 @@ export default function Products() {
   // Sync current client cart elements from persistent cloud stores
   const fetchDBCartQuantitiesOnly = async () => {
     try {
-      const response = await fetch(`https://zypcart-user-backend.onrender.com/api/cart/${activeUserId}`);
+      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`);
       if (response.ok) {
         const data = await response.json();
         setDbCartBadgeItems(Array.isArray(data) ? data : []);
@@ -250,7 +250,7 @@ export default function Products() {
   const syncLiveSellerOrders = async () => {
     if (!isSeller) return;
     try {
-      const response = await fetch(`https://zypcart-user-backend.onrender.com/api/products/orders/seller/${activeUserId}`);
+      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`);
       if (response.ok) {
         const data = await response.json();
         setLiveOrders(data);
@@ -356,7 +356,7 @@ export default function Products() {
     }
 
     try {
-      const response = await fetch('https://zypcart-user-backend.onrender.com/api/cart', {
+      const response = await fetch('https://zypcart-product-backend.onrender.com/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, productId, quantity: targetQty })
@@ -446,8 +446,8 @@ export default function Products() {
     };
 
     const urlEndpoint = isEditing
-      ? `https://zypcart-user-backend.onrender.com/api/products/${editingProductId}`
-      : 'https://zypcart-user-backend.onrender.com/api/products';
+      ? `https://zypcart-product-backend.onrender.com/api/products/${editingProductId}`
+      : 'https://zypcart-product-backend.onrender.com/api/products';
 
     try {
       const response = await fetch(urlEndpoint, {
@@ -471,7 +471,7 @@ export default function Products() {
     if (!confirmSystemClearance) return;
 
     try {
-      const response = await fetch(`https://zypcart-user-backend.onrender.com/api/products/${productId}`, {
+      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/products/${productId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
       });
