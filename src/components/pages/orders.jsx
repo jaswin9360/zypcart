@@ -140,7 +140,7 @@ const OrderHistory = () => {
                 body: JSON.stringify({ 
                     paymentMethods: selectedPayment, 
                     paymentStatus: 'Success',
-                    status: 'Delivered', // Mark as delivered upon payment
+                    status: 'Delivered', 
                     deliveredAt: new Date().toISOString()
                 })
             });

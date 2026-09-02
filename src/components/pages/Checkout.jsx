@@ -63,7 +63,7 @@ export default function Checkout() {
         const fetchAddresses = async () => {
             if (!activeUserId) return setLoading(false);
             try {
-                const res = await fetch(`https://zypcart-product-backend.onrender.com/api/auth/${activeUserId}/addresses`);
+                const res = await fetch(`https://zypcart-user-backend.onrender.com/api/auth/${activeUserId}/addresses`);
                 const data = await res.json();
                 if (res.ok) {
                     setAddresses(data.addresses || []);

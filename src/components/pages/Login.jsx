@@ -1,9 +1,24 @@
 import { useEffect, useState, useContext, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useGoogleLogin } from '@react-oauth/google' 
+import { useGoogleLogin } from '@react-oauth/google'
 import API from '../api/axios'
 import './login.css'
 import { AuthContext } from '../context/AuthContext'
+
+import {
+  initializeAuth
+} from "@uauth-jk/server";
+
+const auth = initializeAuth({
+  apiUrl:
+    "https://tst-server-90.onrender.com/api",
+
+  apiKey:
+    "pk_live_4d70d6eef765c5645dfa79a276e883338dd39fdf9c42d0b4",
+
+  authUrl:
+    "https://user-auth.lovestoblog.com/"
+});
 
 import {
   FaGoogle,
@@ -25,7 +40,7 @@ function Login() {
   const [role, setRole] = useState('buyer')
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: '', password: '' })
-  
+
   // Forgot Password / OTP States
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
@@ -69,8 +84,8 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get('code')
-    if (code) { 
-      sendGithubCodeToBackend(code) 
+    if (code) {
+      sendGithubCodeToBackend(code)
     }
   }, [navigate]) // Removed 'role' dependency to stop unneeded triggers during toggle
 
@@ -98,8 +113,8 @@ function Login() {
     try {
       const { data } = await API.post('/auth/forgot_password', { phone, method: sendMethod })
       alert(data.message || 'Verification OTP sent!')
-      setShowForgotModal(false) 
-      setShowOtpModal(true)     
+      setShowForgotModal(false)
+      setShowOtpModal(true)
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to send verification message')
     } finally {
@@ -160,7 +175,7 @@ function Login() {
     localStorage.setItem('role', role)
 
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-    const redirectUri = window.location.origin + '/login' 
+    const redirectUri = window.location.origin + '/login'
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
     const width = 500, height = 650
     const left = window.screen.width / 2 - width / 2
@@ -177,8 +192,37 @@ function Login() {
           popup.close()
           if (code) { sendGithubCodeToBackend(code) }
         }
-      } catch (e) {}
+      } catch (e) { }
     }, 500)
+  }
+
+  const loginWithuauth = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const result =
+        await auth.signInWithPopup();
+        const data = result.user
+      console.log(result.user)
+      localStorage.setItem('user', JSON.stringify(data))
+      setUser(data)
+      navigate('/profile')
+
+
+    } catch (error) {
+
+      alert(
+        error.message
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
   }
 
   return (
@@ -204,7 +248,7 @@ function Login() {
               </button>
             </div>
             <button type="submit" className="login-btn">Login</button>
-            
+
             <div className="bottom-links">
               <Link to="/register">Create New Account</Link>
               <span className="forgot-link" onClick={() => setShowForgotModal(true)}>Forgot Password?</span>
@@ -213,6 +257,7 @@ function Login() {
         </div>
 
         <div className="login-right">
+          <button className="social-btn" onClick={() => loginWithuauth()}><img width="40px" height="37px" src="uauth.png" className="google" /> <span>Continue with uauth</span></button>
           <button className="social-btn" onClick={() => loginWithGoogle()}><FaGoogle className="google" /> <span>Continue with Google</span></button>
           <button className="social-btn" onClick={() => loginWithFacebook()}><FaFacebookF className="facebook" /> <span>Continue with Facebook</span></button>
           <button className="social-btn" onClick={() => loginWithGithub()}><FaGithub className="github" /> <span>Continue with GitHub</span></button>
@@ -226,16 +271,16 @@ function Login() {
             <button className="close-modal" onClick={() => setShowForgotModal(false)}><FaTimes /></button>
             <h2>Reset Password</h2>
             <p>Enter your international registered phone number.</p>
-            
+
             <form onSubmit={handleForgotPasswordSubmit}>
               <div className="input-box">
                 <FaPhoneAlt className="input-icon" />
-                <input 
-                  type="tel" 
-                  placeholder="e.g. +91936059XXXX" 
-                  value={phone} 
-                  onChange={(e) => setPhone(e.target.value)} 
-                  required 
+                <input
+                  type="tel"
+                  placeholder="e.g. +91936059XXXX"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
                 />
               </div>
 
@@ -265,17 +310,17 @@ function Login() {
             <button className="close-modal" onClick={() => setShowOtpModal(false)}><FaTimes /></button>
             <h2>Enter Security OTP</h2>
             <p>A 6-digit verification code was dispatched to <b>{phone}</b>.</p>
-            
+
             <form onSubmit={handleVerifyOtpSubmit}>
               <div className="input-box">
                 <FaKey className="input-icon" />
-                <input 
-                  type="text" 
-                  placeholder="Enter 6-digit OTP" 
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
                   maxLength="6"
-                  value={otp} 
-                  onChange={(e) => setOtp(e.target.value)} 
-                  required 
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
                 />
               </div>
 
@@ -295,10 +340,10 @@ function Login() {
               setPhone('')
               setRetrievedPassword('')
             }}><FaTimes /></button>
-            
+
             <h2>Password Recovered</h2>
             <p>Your verification succeeded! Here is the password registered to your account:</p>
-            
+
             <div className="password-display-box" style={{
               background: '#f4f6f9',
               padding: '15px',
@@ -327,7 +372,7 @@ function Login() {
           </div>
         </div>
       )}
-    </div> 
+    </div>
   )
 }
 
