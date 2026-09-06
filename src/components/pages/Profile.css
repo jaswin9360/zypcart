@@ -1,610 +1,889 @@
-/* Container to center the profile card nicely on your page view */
-.profile-page-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
-  background-color: #f8fafc; /* Subtle, light workspace background */
-  font-family: system-ui, -apple-system, sans-serif;
-  padding: 20px;
+* {
+    box-sizing: border-box
 }
 
-/* Base Card Presentation Structure */
-.profile-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  max-width: 420px;
-  padding: 32px 24px;
-  text-align: center;
-  box-sizing: border-box;
+.profile-page {
+    min-height: 100vh;
+    background: #f6f7f9;
+    color: #18181b;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 32px 20px 60px
 }
 
-/* Circular Letter Portrait Graphic */
-.profile-avatar-large {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, #3a86c8 0%, #2563eb 100%);
-  color: #ffffff;
-  font-size: 1.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  margin: 0 auto 16px auto;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+.profile-container {
+    width: 100%;
+    max-width: 1180px;
+    margin: auto
 }
 
-/* Text Hierarchy Content */
-.profile-welcome-text {
-  font-size: 1.5rem;
-  color: #1e293b;
-  font-weight: 700;
-  margin: 0 0 8px 0;
+.profile-page-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #f6f7f9;
+    display: flex;
+    align-items: center;
+    justify-content: center
 }
 
-/* Badge Layout Pill Pill Designs */
-.profile-role-wrapper {
-  margin-bottom: 24px;
+.profile-loading-box {
+    text-align: center
 }
+
+.profile-loading-logo {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 22px;
+    border-radius: 15px;
+    background: #18181b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden
+}
+
+.profile-loading-logo img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain
+}
+
+.profile-loading-spinner {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 18px;
+    border: 3px solid #e4e4e7;
+    border-top-color: #18181b;
+    border-radius: 50%;
+    animation: profile-spin .8s linear infinite
+}
+
+.profile-loading-box h2 {
+    margin: 0;
+    font-size: 19px
+}
+
+.profile-loading-box p {
+    margin: 6px 0;
+    color: #71717a;
+    font-size: 13px
+}
+
+@keyframes profile-spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.profile-header {
+    margin-bottom: 28px
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: none;
+    color: #52525b;
+    padding: 0;
+    margin-bottom: 22px;
+    font-size: 13px;
+    cursor: pointer
+}
+
+.back-button span {
+    font-size: 20px
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 32px;
+    letter-spacing: -.7px
+}
+
+.header-title p {
+    margin: 7px 0;
+    color: #71717a;
+    font-size: 14px
+}
+
+.account-card {
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .025)
+}
+
+.phone-required-card {
+    display: flex;
+    gap: 18px;
+    padding: 28px;
+    margin-bottom: 20px
+}
+
+.status-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #fef3c7;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700
+}
+
+.status-content h2 {
+    margin: 0 0 6px;
+    font-size: 19px
+}
+
+.status-content>p {
+    margin: 0;
+    color: #71717a;
+    font-size: 13px
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 18px
+}
+
+.compact-form {
+    max-width: 470px
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #3f3f46
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    background: #fff;
+    outline: none;
+    font-size: 13px
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #18181b;
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, .06)
+}
+
+.country-warning {
+    padding: 10px 12px;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 12px
+}
+
+.primary-button,
+.secondary-button,
+.danger-button,
+.danger-outline-button {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer
+}
+
+.primary-button {
+    border: 1px solid #18181b;
+    background: #18181b;
+    color: #fff
+}
+
+.primary-button:hover {
+    background: #27272a
+}
+
+.secondary-button {
+    border: 1px solid #d4d4d8;
+    background: #fff;
+    color: #27272a
+}
+
+.secondary-button:hover {
+    background: #f4f4f5
+}
+
+.danger-button {
+    border: 1px solid #dc2626;
+    background: #dc2626;
+    color: #fff
+}
+
+.danger-outline-button {
+    border: 1px solid #fecaca;
+    background: #fff;
+    color: #b91c1c
+}
+
+.full-button {
+    width: 100%
+}
+
+.button-row {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap
+}
+
+.unlock-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0
+}
+
+.unlock-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 42px 36px;
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .05)
+}
+
+.lock-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px
+}
+
+.unlock-card h2 {
+    margin: 0;
+    font-size: 22px
+}
+
+.unlock-card>p {
+    margin: 9px auto 0;
+    max-width: 310px;
+    color: #71717a;
+    font-size: 13px;
+    line-height: 1.6
+}
+
+.pin-input-wrapper input {
+    width: 100%;
+    height: 58px;
+    border: 1px solid #d4d4d8;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 12px;
+    outline: none
+}
+
+.pin-input-wrapper input:focus {
+    border-color: #18181b;
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, .06)
+}
+
+.secure-note {
+    margin-top: 20px;
+    padding-top: 17px;
+    border-top: 1px solid #f0f0f1;
+    color: #a1a1aa;
+    font-size: 11px
+}
+
+.profile-overview {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 24px;
+    margin-bottom: 20px
+}
+
+.profile-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #18181b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: 600
+}
+
+.profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.profile-name-row h2 {
+    margin: 0;
+    font-size: 21px
+}
+
+.profile-overview-info>p {
+    margin: 5px 0;
+    color: #71717a;
+    font-size: 13px
+}
+
+.account-status {
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 600
+}
+
 .role-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 30px;
-}
-/* Buyer Custom Accents */
-.badge-buyer {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-}
-/* Seller Custom Accents */
-.badge-seller {
-  background-color: #f0fdf4;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700
 }
 
-/* Horizontal Line Breakdown Accent */
-.profile-actions-divider {
-  height: 1px;
-  background-color: #f1f5f9;
-  margin: 24px 0;
+.role-badge.buyer {
+    background: #f4f4f5;
+    color: #52525b
 }
 
-/* Role verification alert action banners */
-.role-action-promo {
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  margin-bottom: 20px;
-  text-align: left;
-}
-.role-action-promo p {
-  margin: 0 0 12px 0;
-}
-.buyer-promo {
-  background-color: #f8fafc;
-  border-left: 4px solid #3a86c8;
-  color: #475569;
-}
-.seller-promo {
-  background-color: #fafafa;
-  border-left: 4px solid #16a34a;
-  color: #475569;
+.role-badge.seller {
+    background: #ecfdf5;
+    color: #047857
 }
 
-/* Interactive Promo Call-To-Action Switches */
-.promo-btn {
-  width: 100%;
-  border: none;
-  padding: 10px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.action-buyer {
-  background-color: #2563eb;
-  color: white;
-}
-.action-buyer:hover {
-  background-color: #1d4ed8;
-}
-.action-seller {
-  background-color: #16a34a;
-  color: white;
-}
-.action-seller:hover {
-  background-color: #15803d;
+.profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, .9fr);
+    gap: 20px;
+    align-items: start
 }
 
-/* Main Profile Logout Control Utility Button */
-.profile-logout-btn {
-  background: none;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
-  width: 100%;
-  padding: 12px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.profile-logout-btn:hover {
-  background-color: #fef2f2;
-  border-color: #fca5a5;
-  color: #ef4444;
-}
-/* Position alignment for the new structural card context */
-.profile-card {
-  position: relative; /* Essential to allow absolute anchoring of the back button arrow */
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  max-width: 420px;
-  padding: 40px 24px 32px 24px; /* Added additional top padding to clear space for the arrow */
-  text-align: center;
-  box-sizing: border-box;
+.profile-main-column,
+.profile-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px
 }
 
-/* Floating Back Button Control styling */
-.profile-back-arrow {
-  position: absolute;
-  top: 16px;
-  left: 20px;
-  background: none;
-  border: none;
-  color: #64748b;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 21px 22px 17px;
+    border-bottom: 1px solid #f0f0f1
 }
 
-.profile-back-arrow .back-text {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #64748b;
+.section-header h3 {
+    margin: 0;
+    font-size: 16px
 }
 
-/* Hover effects for clean micro-interactions */
-.profile-back-arrow:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
+.section-header p {
+    margin: 5px 0 0;
+    color: #71717a;
+    font-size: 12px;
+    line-height: 1.5
 }
 
-.profile-back-arrow:hover .back-text {
-  color: #1e293b;
-}
-.profile-locked-container, .verification-sub-card {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 15px 0;
-  text-align: left;
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr
 }
 
-.pin-form label, .verification-sub-card p {
-  font-size: 0.9rem;
-  color: #495057;
-  display: block;
-  margin-bottom: 8px;
+.info-item {
+    padding: 20px 22px
 }
 
-.pin-form input, .verification-sub-card input, .profile-password-mock-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-sizing: border-box;
+.info-item+.info-item {
+    border-left: 1px solid #f0f0f1
 }
 
-.profile-password-mock-input {
-  width: 60%;
-  margin-bottom: 0;
-  display: inline-block;
-  margin-right: 10px;
+.info-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #71717a;
+    font-size: 11px
 }
 
-.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
+.info-item strong {
+    display: block;
+    font-size: 13px;
+    word-break: break-word
 }
 
-.cancel-btn {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
+.verified-label {
+    display: inline-block;
+    margin-top: 7px;
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 600
 }
 
-.action-btn-group {
-  display: flex;
-  gap: 10px;
+.security-badge {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #f4f4f5;
+    color: #52525b;
+    font-size: 10px;
+    font-weight: 600
 }
 
-.account-secure-details {
-  text-align: left;
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 6px;
-  border-left: 4px solid #20c997;
-  margin-top: 15px;
+.security-list {
+    padding: 4px 22px 8px
 }
 
-.password-display-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+.security-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 17px 0;
+    border-bottom: 1px solid #f0f0f1
 }
 
-.toggle-pwd-btn, .change-pwd-link-btn {
-  background: none;
-  border: 1px solid #0d6efd;
-  color: #0d6efd;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+.security-row-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700
 }
 
-.change-pwd-link-btn {
-  margin-top: 5px;
-  width: 100%;
+.security-row-content {
+    flex: 1;
+    min-width: 0
 }
 
-.deactivate-seller-btn {
-  background-color: #dc3545 !important;
-  color: white;
-}\.profile-locked-container, .verification-sub-card {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 15px 0;
-  text-align: left;
+.security-row-content strong {
+    display: block;
+    font-size: 13px
 }
 
-.pin-form label, .verification-sub-card p {
-  font-size: 0.9rem;
-  color: #495057;
-  display: block;
-  margin-bottom: 8px;
+.security-row-content span {
+    display: block;
+    margin-top: 3px;
+    color: #71717a;
+    font-size: 11px
 }
 
-.pin-form input, .verification-sub-card input, .profile-password-mock-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-sizing: border-box;
+.security-form {
+    padding: 18px 0;
+    border-bottom: 1px solid #f0f0f1
 }
 
-.profile-password-mock-input {
-  width: 60%;
-  margin-bottom: 0;
-  display: inline-block;
-  margin-right: 10px;
+.seller-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    padding: 24px;
+    border-radius: 14px;
+    background: #18181b;
+    color: #fff
 }
 
-.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
+.seller-card-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    opacity: .6
 }
 
-.cancel-btn {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
+.seller-card h3 {
+    margin: 7px 0 5px;
+    font-size: 18px
 }
 
-.action-btn-group {
-  display: flex;
-  gap: 10px;
+.seller-card p {
+    margin: 0;
+    color: #a1a1aa;
+    font-size: 12px
 }
 
-.account-secure-details {
-  text-align: left;
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 6px;
-  border-left: 4px solid #20c997;
-  margin-top: 15px;
+.seller-card .primary-button {
+    background: #fff;
+    color: #18181b;
+    border-color: #fff;
+    flex-shrink: 0
 }
 
-.password-display-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+.verification-card {
+    padding-bottom: 22px
 }
 
-.toggle-pwd-btn, .change-pwd-link-btn {
-  background: none;
-  border: 1px solid #0d6efd;
-  color: #0d6efd;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+.loading-message {
+    padding: 20px 22px;
+    color: #71717a;
+    font-size: 12px
 }
 
-.change-pwd-link-btn {
-  margin-top: 5px;
-  width: 100%;
+.seller-active-card {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px
 }
 
-.deactivate-seller-btn {
-  background-color: #dc3545 !important;
-  color: white;
-}
-.profile-locked-container, .verification-sub-card {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 15px 0;
-  text-align: left;
+.seller-active-status {
+    color: #15803d;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px
 }
 
-.pin-form label, .verification-sub-card p {
-  font-size: 0.9rem;
-  color: #495057;
-  display: block;
-  margin-bottom: 8px;
+.seller-active-card h3 {
+    margin: 7px 0 5px;
+    font-size: 17px
 }
 
-.pin-form input, .verification-sub-card input, .profile-password-mock-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-sizing: border-box;
+.seller-active-card p {
+    margin: 0;
+    color: #71717a;
+    font-size: 12px
 }
 
-.profile-password-mock-input {
-  width: 60%;
-  margin-bottom: 0;
-  display: inline-block;
-  margin-right: 10px;
+.danger-card {
+    padding: 24px;
+    border-color: #fecaca
 }
 
-.view-account-btn, .confirm-verify-btn, .confirm-deactivate-btn {
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
+.danger-card h3 {
+    margin: 0 0 6px;
+    font-size: 17px
 }
 
-.cancel-btn {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
+.danger-card>p {
+    margin: 0;
+    color: #71717a;
+    font-size: 12px
 }
 
-.action-btn-group {
-  display: flex;
-  gap: 10px;
+.addresses-card {
+    overflow: hidden
 }
 
-.account-secure-details {
-  text-align: left;
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 6px;
-  border-left: 4px solid #20c997;
-  margin-top: 15px;
+.address-count {
+    min-width: 27px;
+    height: 27px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700
 }
 
-.password-display-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+.address-list {
+    padding: 14px
 }
 
-.toggle-pwd-btn, .change-pwd-link-btn, .change-pin-link-btn {
-  background: none;
-  border: 1px solid #0d6efd;
-  color: #0d6efd;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+.address-item {
+    padding: 15px;
+    border: 1px solid #e4e4e7;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: border-color .2s, background .2s
 }
 
-.change-pin-link-btn {
-  border: 1px solid #6c757d;
-  color: #495057;
-  flex: 1;
+.address-item:hover {
+    border-color: #a1a1aa
 }
 
-.change-pwd-link-btn {
-  flex: 1;
+.address-item.selected {
+    border-color: #18181b;
+    background: #fafafa
 }
 
-.deactivate-seller-btn {
-  background-color: #dc3545 !important;
-  color: white;
-}
-/* --- Core Structural Layout Grid --- */
-.profile-unlocked-layout-grid {
-  display: flex;
-  gap: 30px;
-  margin-top: 25px;
-  width: 100%;
+.address-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px
 }
 
-/* Base columns styling */
-.profile-left-column,
-.profile-right-column {
-  flex: 1 1 0%; /* Forces equal column sizing on desktop split views */
-  min-width: 0;   /* CRITICAL: Prevents inner flex items from breaking layout bounds */
-  text-align: left;
+.address-top input {
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+    accent-color: #18181b
 }
 
-/* Border separator layout styling between the columns */
-.profile-right-column.address-management-section {
-  border-left: 1px solid #e7e7e7;
-  padding-left: 30px;
+.address-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: #3f3f46;
+    font-size: 12px;
+    line-height: 1.4
 }
 
-/* --- Address Container Elements --- */
-.address-list-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
+.address-content strong {
+    margin-bottom: 3px;
+    color: #18181b;
+    font-size: 13px
 }
 
-/* Individual Address Cards */
-.address-card-wrapper {
-  padding: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: 1px solid #d5d9d9;
-  background-color: #ffffff;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  width: 100%;
-  box-sizing: border-box; /* Ensures padding doesn't cause overflow additions */
+.address-phone {
+    margin-top: 4px;
+    color: #71717a;
+    font-size: 11px
 }
 
-.address-card-wrapper.selected {
-  background-color: #f7f9fa;
-  border-color: #a8acac;
+.address-actions {
+    display: flex;
+    gap: 15px;
+    margin: 14px 0 0 28px;
+    padding-top: 11px;
+    border-top: 1px solid #e4e4e7
 }
 
-/* --- Amazon Custom Standard Buttons --- */
-.address-management-section button {
-  width: 100%;
-  padding: 10px 16px;
-  background-color: #ffffff;
-  border: 1px solid #a8acac;
-  border-radius: 100px; /* Perfect pill shape */
-  font-size: 14px;
-  font-weight: 500;
-  color: #111111;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(213, 217, 217, 0.3);
-  transition: all 0.15s ease-in-out;
-  box-sizing: border-box; /* Fixes button breaking out of parent card box bounds */
+.text-button {
+    border: 0;
+    background: none;
+    color: #52525b;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0
 }
 
-.address-management-section button:hover {
-  background-color: #f7f9fa;
-  border-color: #8d9090;
+.danger-text {
+    color: #b91c1c
 }
 
-.address-management-section button:active {
-  background-color: #f0f2f2;
-  box-shadow: none;
+.add-address-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: calc(100% - 28px);
+    margin: 0 14px 14px;
+    height: 42px;
+    border: 1px dashed #a1a1aa;
+    border-radius: 8px;
+    background: #fff;
+    color: #3f3f46;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer
 }
 
-/* --- Ultra-Small Screens Optimization (Below 360px) --- */
-@media (max-width: 360px) {
-  /* Shrink outer container pads so text fields have maximum horizontal room */
-  .profile-card {
-    padding: 10px !important;
-    width: 98% !important;
-  }
+.add-address-button span {
+    font-size: 18px
+}
 
-  /* Reduce spacing on your grid column layout wrappers */
-  .profile-unlocked-layout-grid {
-    gap: 20px !important;
-    margin-top: 15px !important;
-  }
+.address-form {
+    margin: 14px;
+    padding: 16px;
+    border: 1px solid #e4e4e7;
+    border-radius: 10px;
+    background: #fafafa
+}
 
-  /* Compress individual address cards padding gaps */
-  .address-card-item {
-    padding: 10px !important;
-  }
+.address-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 17px
+}
 
-  /* Shrink text layouts inside address elements slightly to prevent line-wrapping clutter */
-  .address-list-container h3, 
-  .address-management-section h3 {
-    font-size: 1.05rem !important;
-    margin-bottom: 10px !important;
-  }
+.address-form-header h4 {
+    margin: 0;
+    font-size: 14px
+}
 
-  /* Target text node elements inside address details */
-  .address-card-item p,
-  .address-card-item span,
-  .address-form-box label {
-    font-size: 13px !important;
-    line-height: 1.3 !important;
-  }
+.close-form-button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 6px;
+    background: #f4f4f5;
+    font-size: 19px;
+    cursor: pointer
+}
 
-  /* Adjust gap spacing between the Radio selection node and text blocks */
-  .address-card-item > div {
-    gap: 8px !important;
-  }
+.address-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px
+}
 
-  /* Scale down the radio input element slightly to look balanced with smaller text strings */
-  .address-card-item input[type="radio"] {
-    width: 16px !important;
-    height: 16px !important;
-  }
+.empty-address {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 20px;
+    text-align: center
+}
 
-  /* Shift inline button block to the left slightly to align with text */
-  .address-card-item div[style*="paddingLeft"] {
-    padding-left: 24px !important;
-    margin-top: 10px !important;
-  }
+.empty-address-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    background: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #71717a
+}
 
-  /* Optimize the Amazon pill button padding so text strings stay safely centered */
-  .amazon-pill-btn,
-  .address-card-item button,
-  .address-management-section button {
-    padding: 8px 12px !important;
-    font-size: 12px !important;
-  }
+.empty-address strong {
+    font-size: 12px
+}
 
-  /* Optimize inputs within forms for tight layout boundaries */
-  .address-form-box {
-    padding: 12px !important;
-  }
+.empty-address span {
+    margin-top: 4px;
+    color: #a1a1aa;
+    font-size: 11px
+}
 
-  .address-form-box input {
-    padding: 6px 8px !important;
-    font-size: 13px !important;
-    margin-bottom: 8px !important;
-  }
+.address-loading {
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #71717a;
+    font-size: 12px
+}
+
+.small-spinner {
+    width: 25px;
+    height: 25px;
+    border: 3px solid #e4e4e7;
+    border-top-color: #18181b;
+    border-radius: 50%;
+    animation: profile-spin .7s linear infinite
+}
+
+.account-footer {
+    display: flex;
+    justify-content: center;
+    padding-top: 28px
+}
+
+.logout-button {
+    border: 0;
+    background: none;
+    color: #71717a;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 8px 14px
+}
+
+.logout-button:hover {
+    color: #b91c1c
+}
+
+@media(max-width:900px) {
+    .profile-grid {
+        grid-template-columns: 1fr
+    }
+
+    .profile-side-column {
+        order: 2
+    }
+}
+
+@media(max-width:640px) {
+    .profile-page {
+        padding: 20px 12px 40px
+    }
+
+    .header-title h1 {
+        font-size: 27px
+    }
+
+    .profile-overview {
+        padding: 18px
+    }
+
+    .profile-avatar {
+        width: 55px;
+        height: 55px;
+        font-size: 21px
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr
+    }
+
+    .info-item+.info-item {
+        border-left: 0;
+        border-top: 1px solid #f0f0f1
+    }
+
+    .security-row {
+        flex-wrap: wrap
+    }
+
+    .security-row .secondary-button {
+        margin-left: 51px
+    }
+
+    .seller-card,
+    .seller-active-card {
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .seller-card .primary-button,
+    .seller-active-card .danger-outline-button {
+        width: 100%
+    }
+
+    .address-two-column {
+        grid-template-columns: 1fr
+    }
+
+    .unlock-card {
+        padding: 32px 22px
+    }
+
+    .phone-required-card {
+        padding: 20px
+    }
 }

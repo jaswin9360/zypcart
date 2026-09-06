@@ -400,3 +400,128 @@
     min-width: unset;
   }
 }
+/* =========================================================
+   CART PAGE LOADING
+   ========================================================= */
+
+.cart-loading-screen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+}
+
+.cart-loading-box {
+    width: 360px;
+
+    padding: 35px 25px;
+
+    text-align: center;
+}
+
+.cart-loading-logo {
+    width: 70px;
+    height: 70px;
+
+    margin: 0 auto 22px;
+
+    border-radius: 16px;
+
+    background: #18181b;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-loading-logo img {
+    width: 50px;
+    height: 50px;
+
+    object-fit: contain;
+}
+
+.cart-loading-spinner {
+    width: 32px;
+    height: 32px;
+
+    margin: 0 auto 20px;
+
+    border: 3px solid #e4e4e7;
+    border-top-color: #18181b;
+
+    border-radius: 50%;
+
+    animation: cartLoadingSpin 0.8s linear infinite;
+}
+
+.cart-loading-box h2 {
+    margin: 0;
+
+    color: #18181b;
+
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.cart-loading-box p {
+    margin: 8px 0 0;
+
+    color: #71717a;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   CHECKOUT BUTTON LOADING
+   ========================================================= */
+
+.checkout-loading-content {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+}
+
+.checkout-spinner {
+    width: 16px;
+    height: 16px;
+
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #ffffff;
+
+    border-radius: 50%;
+
+    animation: checkoutLoadingSpin 0.7s linear infinite;
+}
+
+
+@keyframes cartLoadingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+@keyframes checkoutLoadingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

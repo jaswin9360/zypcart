@@ -1,1281 +1,3026 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { jsPDF } from "jspdf";
-import './products.css';
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useRef
+} from "react";
 
-export default function Products() {
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { jsPDF } from "jspdf";
+import "./products.css";
+
+ function Products() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Clean user role configurations
-  const userRoleCleaned = user?.role ? String(user.role).toLowerCase().trim() : '';
-  const isSeller = userRoleCleaned === 'seller';
+  // =========================================================
+  // USER
+  // =========================================================
+
+  const userRole = user?.role
+    ? String(user.role).toLowerCase().trim()
+    : "";
+
+  const isSeller = userRole === "seller";
+
+  const activeUserId =
+    user?.id ||
+    user?._id ||
+    "user_guest_99";
 
   const currentYear = new Date().getFullYear();
 
-  // Core View & Data Matrix Trackers
-  const [view, setView] = useState('buyer');
-  const [showDropdown, setShowDropdown] = useState(false);
+  // =========================================================
+  // VIEW
+  // =========================================================
+
+  const [view, setView] = useState("buyer");
+  const [sellerSubView, setSellerSubView] = useState("dashboard");
+
+  // =========================================================
+  // DATA
+  // =========================================================
+
   const [products, setProducts] = useState([]);
-  const [dbCartBadgeItems, setDbCartBadgeItems] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [liveOrders, setLiveOrders] = useState([]);
-  const [sellerSubView, setSellerSubView] = useState('dashboard');
+  const [dbCartBadgeItems, setDbCartBadgeItems] = useState([]);
 
-  // Search Engine Query Managers
-  const [searchQuery, setSearchQuery] = useState('');
+  // =========================================================
+  // UI
+  // =========================================================
 
-  // Interactive UI Control Hooks
-  const [hoveredProductId, setHoveredProductId] = useState(null);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [priceFilter, setPriceFilter] = useState("All");
 
-  // Modal Popup Form State Configuration Panels
+  const [hoveredProductId, setHoveredProductId] =
+    useState(null);
+
+  const [currentSlideIndex, setCurrentSlideIndex] =
+    useState(0);
+
+  const [selectedProductDetails, setSelectedProductDetails] =
+    useState(null);
+
   const [showModal, setShowModal] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingProductId, setEditingProductId] = useState(null);
-  const [festivalDiscountPct, setFestivalDiscountPct] = useState('');
-  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
 
-  // Structural Matrix Blueprint for New Forms
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    category: 'Electronics',
-    mrpPrice: '',
-    discountPrice: '',
-    transactionType: 'sell',
-    imageUrls: '',
-    stock: '',
-    discountReason: '',
-    specifications: [{ key: '', value: '' }]
-  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editingProductId, setEditingProductId] =
+    useState(null);
+
+  const [formError, setFormError] = useState("");
+
+  const [festivalDiscountPct, setFestivalDiscountPct] =
+    useState("");
+
+  const [userBgImage, setUserBgImage] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageLoading, setPageLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const dropdownRef = useRef(null);
-  const activeUserId = user?.id || user?._id || "user_guest_99";
 
-  // -- Zypcart SMART ASSIST V3.0 DEPLOYMENT START ---
-  const [showSri, setShowSri] = useState(false);
-  const [sriMessages, setSriMessages] = useState([
-    { sender: 'ai', text: 'Zypcart  Smart Assist V3.0 online. Try saying: "Add iPhone 13 to my cart" or "Show the colours of Samsung TV".' }
-  ]);
-  const [sriInput, setSriInput] = useState('');
+  // =========================================================
+  // NEW PRODUCT
+  // =========================================================
 
-  const executeSriAutomation = (commandText) => {
-    const cmd = commandText.toLowerCase().trim();
-    let response = "I couldn't process that command. Try asking for specific product details or navigation pages.";
-
-    // Intent 1: Direct Cart Action Automation (e.g., "add iphone 13 to my cart")
-    if (cmd.includes('add') && (cmd.includes('cart') || cmd.includes('buy') || cmd.includes('put'))) {
-      const targetProd = products.find(p => p.name && cmd.includes(p.name.toLowerCase()));
-      if (targetProd) {
-        handleAddToCart(targetProd._id, targetProd.stock);
-        response = `🛒 Automation Complete: "${targetProd.name}" has been added to your shopping cart state.`;
-      } else {
-        response = "I couldn't locate that specific product name in our current live inventory stream.";
+  const emptyProduct = {
+    name: "",
+    category: "Electronics",
+    mrpPrice: "",
+    discountPrice: "",
+    transactionType: "sell",
+    imageUrls: [],
+    stock: "",
+    discountReason: "",
+    specifications: [
+      {
+        key: "",
+        value: ""
       }
-    }
-
-    // Intent 2: Granular Attribute / Specification Extraction (e.g., "show the colours of iphone 17")
-    else if (cmd.includes('show') || cmd.includes('what is') || cmd.includes('get') || cmd.includes('tell me')) {
-      const targetProd = products.find(p => p.name && cmd.includes(p.name.toLowerCase()));
-
-      if (targetProd) {
-        let matchedSpec = null;
-
-        // Scan the nested specifications matrix for matches
-        if (targetProd.specifications && Array.isArray(targetProd.specifications)) {
-          matchedSpec = targetProd.specifications.find(s => {
-            const keyWord = s.key.toLowerCase();
-            return cmd.includes(keyWord) ||
-              (cmd.includes('colour') && keyWord.includes('color')) ||
-              (cmd.includes('color') && keyWord.includes('color'));
-          });
-        }
-
-        if (matchedSpec) {
-          response = `📋 **${targetProd.name} → Available ${matchedSpec.key}**: ${matchedSpec.value}`;
-        } else {
-          // Fallback to macro attributes if a specific spec row isn't explicitly isolated
-          if (cmd.includes('price') || cmd.includes('cost') || cmd.includes('mrp')) {
-            response = `💰 **${targetProd.name} Pricing**: Deal Price is ₹${targetProd.discountPrice.toLocaleString('en-IN')} (MRP: ₹${targetProd.mrpPrice.toLocaleString('en-IN')})`;
-          } else if (cmd.includes('stock') || cmd.includes('quantity') || cmd.includes('left')) {
-            response = `📦 **${targetProd.name} Inventory**: ${targetProd.stock} structural units remaining in store.`;
-          } else if (cmd.includes('category') || cmd.includes('tag')) {
-            response = `🏷️ **${targetProd.name} Class**: Cataloged under "${targetProd.category}".`;
-          } else {
-            // General modal extraction fallback
-            setSelectedProductDetails(targetProd);
-            response = `🔍 I have pulled up the full specification modal layout for "${targetProd.name}". What specific details would you like me to isolate?`;
-          }
-        }
-      } else {
-        response = "Could not identify that product item. Please verify the exact name on the display grid.";
-      }
-    }
-
-    // Intent 3: General UI Navigation & Control Deck Actions
-    else if (cmd.includes('cart')) {
-      navigate('/cart');
-      response = "Opening cart checkout interface...";
-    } else if (cmd.includes('order')) {
-      navigate('/orders');
-      response = "Routing to your continuous order tracking logs...";
-    } else if (cmd.includes('seller')) {
-      if (isSeller) {
-        setView('seller');
-        setSellerSubView('dashboard');
-        response = "Seller panel activated successfully.";
-      } else {
-        response = "Access restriction protocol triggered: Account does not possess merchant role privileges.";
-      }
-    } else if (cmd.includes('buyer')) {
-      setView('buyer');
-      response = "Returned to standard consumer marketplace view mode.";
-    } else if (cmd.includes('search')) {
-      const query = cmd.replace('search', '').trim();
-      if (query) {
-        setSearchQuery(query);
-        response = `Applying filter mask for query: "${query}"`;
-      } else {
-        response = "Please input a valid sequence to filter the product index.";
-      }
-    } else if (cmd.includes('clear') || cmd.includes('reset')) {
-      setSearchQuery('');
-      response = "Marketplace search query masks completely reset.";
-    } else if (cmd.includes('logout')) {
-      handleLogoutClick();
-      response = "Session terminated.";
-    }
-
-    setSriMessages(prev => [...prev, { sender: 'ai', text: response }]);
+    ]
   };
 
-  const handleSriCommand = (e) => {
-    e.preventDefault();
-    if (!sriInput.trim()) return;
+  const [newProduct, setNewProduct] =
+    useState(emptyProduct);
 
-    const currentInput = sriInput;
-    setSriMessages(prev => [...prev, { sender: 'user', text: currentInput }]);
-    setSriInput('');
+  // =========================================================
+  // CLOSE DROPDOWN
+  // =========================================================
 
-    setTimeout(() => {
-      executeSriAutomation(currentInput);
-    }, 350);
-  };
-  // --- Zypcart  SMART ASSIST V3.0 DEPLOYMENT END ---
-
-  // Auto-close navigation dropdowns on outside mouse click
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+    };
   }, []);
 
-
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  // =========================================================
+  // INITIAL PAGE LOAD
+  // =========================================================
 
   useEffect(() => {
-    fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch orders');
-        return res.json();
-      })
-      .then((data) => {
-        setOrders(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+    let cancelled = false;
+
+    const loadInitialData = async () => {
+      setPageLoading(true);
+      setError(null);
+
+      try {
+        let productsEndpoint =
+          "https://zypcart-product-backend.onrender.com/api/products/marketplace";
+
+        if (isSeller && view === "seller") {
+          productsEndpoint =
+            `https://zypcart-product-backend.onrender.com/api/products/user-dashboard/${activeUserId}`;
+        }
+
+        const requests = [
+          fetch(productsEndpoint),
+          fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`)
+        ];
+
+        if (isSeller) {
+          requests.push(
+            fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`)
+          );
+        }
+
+        const responses = await Promise.all(requests);
+
+        if (!responses[0].ok) {
+          throw new Error("Unable to load products.");
+        }
+
+        const productData = await responses[0].json();
+        const cartData = responses[1].ok
+          ? await responses[1].json()
+          : [];
+
+        let orderData = [];
+        if (isSeller && responses[2]) {
+          orderData = responses[2].ok
+            ? await responses[2].json()
+            : [];
+        }
+
+        if (cancelled) return;
+
+        setProducts(Array.isArray(productData) ? productData : []);
+        setDbCartBadgeItems(Array.isArray(cartData) ? cartData : []);
+        setOrders(Array.isArray(orderData) ? orderData : []);
+        setLiveOrders(Array.isArray(orderData) ? orderData : []);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || "Unable to load Zypcart.");
+        }
+      } finally {
+        if (!cancelled) setPageLoading(false);
+      }
+    };
+
+    loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeUserId, isSeller, view]);
+
+  // =========================================================
+  // FETCH ORDERS
+  // =========================================================
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setActionLoading(true);
+
+        const response = await fetch(
+          `https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load orders");
+        }
+
+        const data = await response.json();
+
+        setOrders(Array.isArray(data) ? data : []);
+        setError(null);
+      } catch (err) {
         setError(err.message);
-        setLoading(false);
-      });
+      } finally {
+        setActionLoading(false);
+      }
+    };
+
+    fetchOrders();
   }, [activeUserId]);
 
-  // Automatic slideshow cycle loop when hovering
+  // =========================================================
+  // PRODUCT IMAGE SLIDESHOW
+  // =========================================================
+
   useEffect(() => {
     if (!hoveredProductId) return;
 
-    const targetProduct = products.find(p => p._id === hoveredProductId);
-    const totalImages = targetProduct?.imageUrls?.length || 0;
+    const product = products.find(
+      (item) => item._id === hoveredProductId
+    );
+
+    const totalImages =
+      product?.imageUrls?.length || 0;
 
     if (totalImages <= 1) return;
 
-    const slideshowTimer = setInterval(() => {
-      setCurrentSlideIndex((prevIndex) => (prevIndex + 1) % totalImages);
-    }, 2000); // Increased slightly so manual clicks have more breathing room
+    const timer = setInterval(() => {
+      setCurrentSlideIndex(
+        (prev) => (prev + 1) % totalImages
+      );
+    }, 2000);
 
-    return () => clearInterval(slideshowTimer);
+    return () => clearInterval(timer);
   }, [hoveredProductId, products]);
 
-  // Sync component catalog dataset directly with remote REST APIs
-  const syncInventoryCatalog = async () => {
-    let endpoint = 'https://zypcart-product-backend.onrender.com/api/products/marketplace';
+  // =========================================================
+  // FETCH PRODUCTS
+  // =========================================================
 
-    if (isSeller && view === 'seller') {
-      endpoint = `https://zypcart-product-backend.onrender.com/api/products/user-dashboard/${activeUserId}`;
+  const syncInventoryCatalog = async () => {
+    let endpoint =
+      "https://zypcart-product-backend.onrender.com/api/products/marketplace";
+
+    if (isSeller && view === "seller") {
+      endpoint =
+        `https://zypcart-product-backend.onrender.com/api/products/user-dashboard/${activeUserId}`;
     }
 
     try {
       const response = await fetch(endpoint);
-      if (response.ok) {
-        const payloadData = await response.json();
-        setProducts(payloadData);
-      }
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to sync records from dataset inventory matrix:", err);
+      console.error("Failed to load products:", err);
     }
   };
 
-  // Sync current client cart elements from persistent cloud stores
+  // =========================================================
+  // FETCH CART
+  // =========================================================
+
   const fetchDBCartQuantitiesOnly = async () => {
     try {
-      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setDbCartBadgeItems(Array.isArray(data) ? data : []);
-      }
+      const response = await fetch(
+        `https://zypcart-product-backend.onrender.com/api/cart/${activeUserId}`
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      setDbCartBadgeItems(
+        Array.isArray(data) ? data : []
+      );
     } catch (err) {
-      console.error("Cart retrieval processing error sequence:", err);
+      console.error("Failed to load cart:", err);
     }
   };
 
-  // Sync incoming operations logs with merchant context
+  // =========================================================
+  // FETCH SELLER ORDERS
+  // =========================================================
+
   const syncLiveSellerOrders = async () => {
     if (!isSeller) return;
+
     try {
-      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setLiveOrders(data);
-      }
+      const response = await fetch(
+        `https://zypcart-product-backend.onrender.com/api/products/orders/seller/${activeUserId}`
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      setLiveOrders(
+        Array.isArray(data) ? data : []
+      );
     } catch (err) {
-      console.error("Failed executing real-time order data compilation:", err);
+      console.error(
+        "Failed to load seller orders:",
+        err
+      );
     }
   };
 
-  // Unified batch sync update hook
+  // =========================================================
+  // SYNC DATA
+  // =========================================================
+
   useEffect(() => {
     syncInventoryCatalog();
     fetchDBCartQuantitiesOnly();
-    if (isSeller && view === 'seller') {
+
+    if (isSeller && view === "seller") {
       syncLiveSellerOrders();
     }
-  }, [view, user, sellerSubView]);
+  }, [
+    view,
+    user,
+    sellerSubView
+  ]);
 
-  // Analytical Calculations
-  const totalProductsCount = products.length;
-  const totalOrdersAccumulator = orders.reduce((sum, item) => sum + (item.items[0].quantity), 0);
-  const totalRevenueCalculated = orders.reduce((sum, item) => sum + (((item.totalAmountPaid) * (item.items[0].quantity))), 0);
-  const totalCartItemsCount = dbCartBadgeItems.reduce((sum, item) => sum + (item.quantity), 0);
+  // =========================================================
+  // CALCULATIONS
+  // =========================================================
 
-  // String Filtration Array Algorithm
-  const filteredProducts = products.filter(product => {
+  const totalProductsCount =
+    products.length;
+
+  const totalOrdersAccumulator =
+    orders.reduce(
+      (sum, item) =>
+        sum +
+        (item.items?.reduce(
+          (itemSum, product) =>
+            itemSum + (product.quantity || 0),
+          0
+        ) || 0),
+      0
+    );
+
+  const totalRevenueCalculated =
+    orders.reduce(
+      (sum, item) =>
+        sum + Number(item.totalAmountPaid || 0),
+      0
+    );
+
+  const totalCartItemsCount =
+    dbCartBadgeItems.reduce(
+      (sum, item) =>
+        sum + Number(item.quantity || 0),
+      0
+    );
+
+  // =========================================================
+  // SEARCH + FILTER
+  // =========================================================
+
+  const categories = [
+    "All",
+    ...new Set(
+      products
+        .map((product) => product.category)
+        .filter(Boolean)
+    )
+  ];
+
+  const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase().trim();
-    return (
+
+    const matchesSearch =
+      !query ||
       product.name?.toLowerCase().includes(query) ||
       product.category?.toLowerCase().includes(query) ||
-      (product.sellerName || product.userId)?.toLowerCase().includes(query)
+      String(product.sellerName || product.userId || "")
+        .toLowerCase()
+        .includes(query);
+
+    const matchesCategory =
+      selectedCategory === "All" ||
+      product.category === selectedCategory;
+
+    const price = Number(
+      product.discountPrice || product.mrpPrice || 0
     );
+
+    let matchesPrice = true;
+
+    if (priceFilter === "under500") matchesPrice = price < 500;
+    if (priceFilter === "500to1000") matchesPrice = price >= 500 && price <= 1000;
+    if (priceFilter === "1000to5000") matchesPrice = price > 1000 && price <= 5000;
+    if (priceFilter === "above5000") matchesPrice = price > 5000;
+
+    return matchesSearch && matchesCategory && matchesPrice;
   });
 
-  // Dynamic input form fields handlers
-  const handleFormInputChange = (e) => {
-    setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
+  // =========================================================
+  // PAGINATION
+  // =========================================================
+
+  const productsPerPage = 10;
+
+  const totalPages = Math.ceil(
+    filteredProducts.length /
+      productsPerPage
+  );
+
+  const indexOfLastProduct =
+    currentPage * productsPerPage;
+
+  const indexOfFirstProduct =
+    indexOfLastProduct -
+    productsPerPage;
+
+  const currentProducts =
+    filteredProducts.slice(
+      indexOfFirstProduct,
+      indexOfLastProduct
+    );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, priceFilter]);
+
+  // =========================================================
+  // LOGOUT
+  // =========================================================
+
+  const handleLogoutClick = async () => {
+    try {
+      if (typeof logout === "function") {
+        await logout();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      navigate("/");
+    }
   };
+
+  // =========================================================
+  // ADD TO CART
+  // =========================================================
+
+  const handleAddToCart = async (
+    productId,
+    itemStock
+  ) => {
+    const existingMatch =
+      dbCartBadgeItems.find(
+        (item) =>
+          String(
+            item.productId?._id ||
+            item.productId
+          ) === String(productId)
+      );
+
+    const currentQty =
+      existingMatch?.quantity || 0;
+
+    const targetQty =
+      currentQty + 1;
+
+    const maxAllowedStock =
+      Math.min(itemStock || 99, 5);
+
+    if (targetQty > maxAllowedStock) {
+      alert(
+        `Maximum ${maxAllowedStock} items allowed.`
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://zypcart-product-backend.onrender.com/api/cart",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userId: activeUserId,
+            productId,
+            quantity: targetQty
+          })
+        }
+      );
+
+      if (response.ok) {
+        fetchDBCartQuantitiesOnly();
+      }
+    } catch (err) {
+      console.error(
+        "Failed to add product to cart:",
+        err
+      );
+    }
+  };
+
+  // =========================================================
+  // FORM
+  // =========================================================
+
+  const handleFormInputChange = (e) => {
+    setNewProduct({
+      ...newProduct,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // =========================================================
+  // SPECIFICATIONS
+  // =========================================================
 
   const handleAddSpecificationField = () => {
     setNewProduct({
       ...newProduct,
       specifications: [
-        ...(Array.isArray(newProduct.specifications) ? newProduct.specifications : []),
-        { key: '', value: '' }
+        ...newProduct.specifications,
+        {
+          key: "",
+          value: ""
+        }
       ]
     });
   };
 
-  const handleUpdateSpecificationField = (index, field, value) => {
-    const freshSpecs = [...newProduct.specifications];
-    freshSpecs[index][field] = value;
-    setNewProduct({ ...newProduct, specifications: freshSpecs });
-  };
+  const handleUpdateSpecificationField = (
+    index,
+    field,
+    value
+  ) => {
+    const updated =
+      [...newProduct.specifications];
 
-  const handleRemoveSpecificationField = (index) => {
-    const freshSpecs = newProduct.specifications.filter((_, i) => i !== index);
-    setNewProduct({ ...newProduct, specifications: freshSpecs });
-  };
-
-  const handleFestivalDiscountApply = () => {
-    const pct = parseFloat(festivalDiscountPct);
-    if (isNaN(pct) || pct < 0 || pct > 100) {
-      alert("Please enter a valid percentage drop between 0 and 100.");
-      return;
-    }
-    const currentPrice = Number(newProduct.mrpPrice);
-    if (!currentPrice) {
-      alert("Please configure an Original MRP value prior to applying seasonal deductions.");
-      return;
-    }
-
-    const systemCalculatedPrice = Math.max(0, Math.round(currentPrice * (1 - pct / 100)));
-
-    setNewProduct(prev => ({
-      ...prev,
-      discountPrice: systemCalculatedPrice,
-      discountReason: `Festival Special Sale (${pct}% OFF)`
-    }));
-    setFestivalDiscountPct('');
-  };
-
-  const handleLogoutClick = async () => {
-    try {
-      if (typeof logout === 'function') await logout();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      navigate('/');
-    }
-  };
-
-  // Cloud shopping cart sync logic
-  const handleAddToCart = async (productId, itemStock) => {
-    const existingMatch = dbCartBadgeItems.find(item => String(item.productId?._id || item.productId) === String(productId));
-    const currentQty = existingMatch ? existingMatch.quantity : 0;
-    const targetQty = currentQty + 1;
-    const maxAllowedStock = Math.min(itemStock || 99, 5);
-
-    if (targetQty > maxAllowedStock) {
-      alert(`Maximum item cap limit reached! Limit is up to ${maxAllowedStock} units.`);
-      return;
-    }
-
-    try {
-      const response = await fetch('https://zypcart-product-backend.onrender.com/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUserId, productId, quantity: targetQty })
-      });
-      if (response.ok) {
-        fetchDBCartQuantitiesOnly();
-      }
-    } catch (err) {
-      console.error("Critical failure adding items directly to target data carts:", err);
-    }
-  };
-
-  const handleOpenEditModal = (product) => {
-    setIsEditing(true);
-    setEditingProductId(product._id);
-    setFormError('');
-    setFestivalDiscountPct('');
+    updated[index] = {
+      ...updated[index],
+      [field]: value
+    };
 
     setNewProduct({
-      name: product.name || '',
-      category: product.category || 'Electronics',
-      mrpPrice: product.mrpPrice || '',
-      discountPrice: product.discountPrice || '',
-      transactionType: product.transactionType || 'sell',
-
-      // CRITICAL FIX: Ensure this is always an Array, NEVER a string!
-      imageUrls: Array.isArray(product.imageUrls)
-        ? product.imageUrls
-        : (typeof product.imageUrls === 'string' && product.imageUrls.trim() !== ''
-          ? [product.imageUrls]
-          : []),
-
-      stock: product.stock || '',
-      discountReason: product.discountReason || '',
-      specifications: product.specifications && product.specifications.length > 0
-        ? product.specifications
-        : [{ key: '', value: '' }]
+      ...newProduct,
+      specifications: updated
     });
-
-    setShowModal(true);
   };
+
+  const handleRemoveSpecificationField = (
+    index
+  ) => {
+    const updated =
+      newProduct.specifications.filter(
+        (_, i) => i !== index
+      );
+
+    setNewProduct({
+      ...newProduct,
+      specifications:
+        updated.length > 0
+          ? updated
+          : [{ key: "", value: "" }]
+    });
+  };
+
+  // =========================================================
+  // DISCOUNT
+  // =========================================================
+
+  const handleFestivalDiscountApply = () => {
+    const pct =
+      parseFloat(festivalDiscountPct);
+
+    if (
+      isNaN(pct) ||
+      pct < 0 ||
+      pct > 100
+    ) {
+      alert(
+        "Enter a percentage between 0 and 100."
+      );
+      return;
+    }
+
+    const currentPrice =
+      Number(newProduct.mrpPrice);
+
+    if (!currentPrice) {
+      alert("Enter the MRP first.");
+      return;
+    }
+
+    const calculatedPrice =
+      Math.max(
+        0,
+        Math.round(
+          currentPrice *
+            (1 - pct / 100)
+        )
+      );
+
+    setNewProduct((prev) => ({
+      ...prev,
+      discountPrice:
+        calculatedPrice,
+      discountReason:
+        `${pct}% OFF`
+    }));
+
+    setFestivalDiscountPct("");
+  };
+
+  // =========================================================
+  // OPEN CREATE MODAL
+  // =========================================================
 
   const handleOpenCreateModal = () => {
     setIsEditing(false);
     setEditingProductId(null);
-    setFormError('');
-    setFestivalDiscountPct('');
+    setFormError("");
+    setFestivalDiscountPct("");
+
     setNewProduct({
-      name: '',
-      category: 'Electronics',
-      mrpPrice: '',
-      discountPrice: '',
-      transactionType: 'sell',
-      imageUrls: '',
-      stock: '',
-      discountReason: '',
-      specifications: [{ key: '', value: '' }]
+      ...emptyProduct,
+      imageUrls: []
     });
+
     setShowModal(true);
   };
 
+  // =========================================================
+  // OPEN EDIT MODAL
+  // =========================================================
 
-  const handleCreateProductSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
+  const handleOpenEditModal = (
+    product
+  ) => {
+    setIsEditing(true);
+    setEditingProductId(product._id);
+    setFormError("");
+    setFestivalDiscountPct("");
 
-    const parsingImageUrls = Array.isArray(newProduct.imageUrls)
-      ? newProduct.imageUrls.map(url => typeof url === 'string' ? url.trim() : '').filter(Boolean)
-      : [];
+    setNewProduct({
+      name: product.name || "",
+      category:
+        product.category ||
+        "Electronics",
 
-    const cleanedSpecifications = newProduct.specifications.filter(s => s.key.trim() && s.value.trim());
+      mrpPrice:
+        product.mrpPrice || "",
 
+      discountPrice:
+        product.discountPrice || "",
 
+      transactionType:
+        product.transactionType ||
+        "sell",
 
-    const bodyPayload = {
-      userId: activeUserId,
-      sellerName: user?.name,
-      name: newProduct.name,
-      category: newProduct.category,
-      mrpPrice: Number(newProduct.mrpPrice),
-      discountPrice: Number(newProduct.discountPrice),
-      transactionType: newProduct.transactionType,
-      imageUrls: parsingImageUrls,
-      stock: Number(newProduct.stock),
-      discountReason: newProduct.discountReason,
-      specifications: cleanedSpecifications
-    };
+      imageUrls:
+        Array.isArray(product.imageUrls)
+          ? product.imageUrls
+          : product.imageUrls
+            ? [product.imageUrls]
+            : [],
 
-    const urlEndpoint = isEditing
-      ? `https://zypcart-product-backend.onrender.com/api/products/${editingProductId}`
-      : 'https://zypcart-product-backend.onrender.com/api/products';
+      stock:
+        product.stock || "",
 
-    try {
-      const response = await fetch(urlEndpoint, {
-        method: isEditing ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload)
-      });
+      discountReason:
+        product.discountReason || "",
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Server baseline tracking rejection error.');
+      specifications:
+        product.specifications?.length
+          ? product.specifications
+          : [
+              {
+                key: "",
+                value: ""
+              }
+            ]
+    });
 
-      setShowModal(false);
-      syncInventoryCatalog();
-    } catch (err) {
-      setFormError(err.message);
-    }
+    setShowModal(true);
   };
 
-  const handleDeleteProduct = async (productId, productName) => {
-    const confirmSystemClearance = window.confirm(`Are you sure you want to permanently delete "${productName}"?`);
-    if (!confirmSystemClearance) return;
+  // =========================================================
+  // ADD IMAGE
+  // =========================================================
+
+  const handleAddImage = () => {
+    const currentUrls =
+      Array.isArray(newProduct.imageUrls)
+        ? newProduct.imageUrls
+        : [];
+
+    setNewProduct({
+      ...newProduct,
+      imageUrls: [
+        ...currentUrls,
+        ""
+      ]
+    });
+  };
+
+  const handleUpdateImage = (
+    index,
+    value
+  ) => {
+    const updated =
+      [...newProduct.imageUrls];
+
+    updated[index] = value;
+
+    setNewProduct({
+      ...newProduct,
+      imageUrls: updated
+    });
+  };
+
+  const handleRemoveImage = (
+    index
+  ) => {
+    const updated =
+      newProduct.imageUrls.filter(
+        (_, i) => i !== index
+      );
+
+    setNewProduct({
+      ...newProduct,
+      imageUrls: updated
+    });
+  };
+
+  // =========================================================
+  // CREATE / UPDATE PRODUCT
+  // =========================================================
+
+  const handleCreateProductSubmit =
+    async (e) => {
+      e.preventDefault();
+
+      setFormError("");
+
+      const imageUrls =
+        Array.isArray(
+          newProduct.imageUrls
+        )
+          ? newProduct.imageUrls
+              .map((url) =>
+                typeof url === "string"
+                  ? url.trim()
+                  : ""
+              )
+              .filter(Boolean)
+          : [];
+
+      const specifications =
+        newProduct.specifications
+          .filter(
+            (spec) =>
+              spec.key?.trim() &&
+              spec.value?.trim()
+          );
+
+      const bodyPayload = {
+        userId: activeUserId,
+        sellerName: user?.name,
+        name: newProduct.name,
+        category:
+          newProduct.category,
+
+        mrpPrice:
+          Number(newProduct.mrpPrice),
+
+        discountPrice:
+          Number(
+            newProduct.discountPrice
+          ),
+
+        transactionType:
+          newProduct.transactionType,
+
+        imageUrls,
+
+        stock:
+          Number(newProduct.stock),
+
+        discountReason:
+          newProduct.discountReason,
+
+        specifications
+      };
+
+      const endpoint = isEditing
+        ? `https://zypcart-product-backend.onrender.com/api/products/${editingProductId}`
+        : "https://zypcart-product-backend.onrender.com/api/products";
+
+      try {
+        const response =
+          await fetch(endpoint, {
+            method: isEditing
+              ? "PUT"
+              : "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify(
+              bodyPayload
+            )
+          });
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Something went wrong."
+          );
+        }
+
+        setShowModal(false);
+
+        await syncInventoryCatalog();
+      } catch (err) {
+        setFormError(err.message);
+      }
+    };
+
+  // =========================================================
+  // DELETE
+  // =========================================================
+
+  const handleDeleteProduct = async (
+    productId,
+    productName
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Delete "${productName}"?`
+      );
+
+    if (!confirmed) return;
 
     try {
-      const response = await fetch(`https://zypcart-product-backend.onrender.com/api/products/${productId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response =
+        await fetch(
+          `https://zypcart-product-backend.onrender.com/api/products/${productId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type":
+                "application/json"
+            }
+          }
+        );
 
       if (!response.ok) {
-        const errorPayload = await response.json();
-        throw new Error(errorPayload.message || 'Failed to remove node.');
+        const data =
+          await response.json();
+
+        throw new Error(
+          data.message ||
+            "Failed to delete product."
+        );
       }
 
       syncInventoryCatalog();
     } catch (err) {
-      console.error(err);
-      alert(`Error deleting product: ${err.message}`);
+      alert(
+        `Error: ${err.message}`
+      );
     }
   };
 
-  // PDF Document Generation Layout Engine
-  const generatePDFSpecsDocument = (product) => {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  // =========================================================
+  // PDF
+  // =========================================================
 
-    doc.setFillColor(186, 65, 93);
-    doc.rect(0, 0, 210, 26, 'F');
+  const generatePDFSpecsDocument =
+    (product) => {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
 
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text(product.name || "Product Specifications", 15, 17);
+      doc.setFillColor(
+        37,
+        99,
+        235
+      );
 
-    doc.setFontSize(11);
-    let yPos = 40;
+      doc.rect(
+        0,
+        0,
+        210,
+        28,
+        "F"
+      );
 
-    const addSpecRow = (sectionTitle, technicalContent) => {
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 25;
+      doc.setTextColor(
+        255,
+        255,
+        255
+      );
+
+      doc.setFont(
+        "helvetica",
+        "bold"
+      );
+
+      doc.setFontSize(20);
+
+      doc.text(
+        product.name ||
+          "Product Details",
+        15,
+        18
+      );
+
+      let y = 42;
+
+      const addRow = (
+        label,
+        value
+      ) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 25;
+        }
+
+        doc.setFont(
+          "helvetica",
+          "bold"
+        );
+
+        doc.setTextColor(
+          37,
+          99,
+          235
+        );
+
+        doc.text(
+          String(label).toUpperCase(),
+          15,
+          y
+        );
+
+        doc.setFont(
+          "helvetica",
+          "normal"
+        );
+
+        doc.setTextColor(
+          50,
+          50,
+          50
+        );
+
+        const text =
+          String(value || "N/A");
+
+        doc.text(
+          text,
+          65,
+          y
+        );
+
+        doc.setDrawColor(
+          220,
+          220,
+          220
+        );
+
+        doc.line(
+          15,
+          y + 4,
+          195,
+          y + 4
+        );
+
+        y += 14;
+      };
+
+      addRow(
+        "Category",
+        product.category
+      );
+
+      product.specifications?.forEach(
+        (spec) => {
+          addRow(
+            spec.key,
+            spec.value
+          );
+        }
+      );
+
+      addRow(
+        "Price",
+        `₹ ${Number(
+          product.discountPrice || 0
+        ).toLocaleString("en-IN")}`
+      );
+
+      if (
+        product.discountReason
+      ) {
+        addRow(
+          "Offer",
+          product.discountReason
+        );
       }
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(186, 65, 93);
-      doc.text(String(sectionTitle).toUpperCase(), 15, yPos);
 
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(51, 65, 85);
-      doc.text(technicalContent || 'N/A', 65, yPos);
-
-      doc.setDrawColor(226, 232, 240);
-      doc.line(15, yPos + 4, 195, yPos + 4);
-      yPos += 15;
+      doc.save(
+        `${product.name?.replace(
+          /\s+/g,
+          "_"
+        ) || "product"}_details.pdf`
+      );
     };
 
-    addSpecRow("CATALOG TYPE", product.category);
+  // =========================================================
+  // BACKGROUND
+  // =========================================================
 
-    if (product.specifications && product.specifications.length > 0) {
-      product.specifications.forEach((spec) => {
-        addSpecRow(spec.key, spec.value);
-      });
-    } else {
-      addSpecRow("SPEC DETAILS", "No special structural attributes listed.");
-    }
+  const handleBackgroundUpload =
+    (e) => {
+      const file =
+        e.target.files?.[0];
 
-    if (yPos > 270) { doc.addPage(); yPos = 25; }
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(186, 65, 93);
-    doc.text("STORE DEAL PRICE", 15, yPos);
+      if (!file) return;
 
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(22, 163, 74);
-    doc.text(`INR ₹ ${product.discountPrice?.toLocaleString('en-IN')}/-`, 65, yPos);
+      const imageUrl =
+        URL.createObjectURL(
+          file
+        );
 
-    if (product.discountReason) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Applied Event: ${product.discountReason}`, 65, yPos + 6);
-    }
-
-    doc.save(`${product.name?.replace(/\s+/g, '_')}_Specs_Registry.pdf`);
-  };
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [userBgImage, setUserBgImage] = useState('');
-
-  const productsPerPage = 10;
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-
-  const handleBackgroundUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
       setUserBgImage(imageUrl);
-    }
-  };
+    };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  // =========================================================
+  // SELLER DASHBOARD
+  // =========================================================
 
+  const renderDashboardHome =
+    () => (
+      <>
+        <div className="metrics-grid">
+          <div className="metric-card">
+            <span className="metric-label">
+              Products
+            </span>
 
-  /* ==================================================================
-      SUB-VIEW RENDERING DECK (SELLER COMPONENT MATRICES)
-     ================================================================== */
+            <strong>
+              {totalProductsCount}
+            </strong>
+          </div>
 
-  const renderDashboardHome = () => (
-    <>
-      <div className="metrics-grid">
-        <div className="metric-card blue-tint">
-          <div className="card-icon-box">👜</div>
-          <div className="metric-data">
-            <span className="metric-label">Total Products</span>
-            <h3>{totalProductsCount}</h3>
+          <div className="metric-card">
+            <span className="metric-label">
+              Orders
+            </span>
+
+            <strong>
+              {totalOrdersAccumulator}
+            </strong>
+          </div>
+
+          <div className="metric-card">
+            <span className="metric-label">
+              Revenue
+            </span>
+
+            <strong>
+              ₹{" "}
+              {totalRevenueCalculated.toLocaleString(
+                "en-IN"
+              )}
+            </strong>
           </div>
         </div>
-        <div className="metric-card green-tint">
-          <div className="card-icon-box">🛒</div>
-          <div className="metric-data">
-            <span className="metric-label">Total Orders</span>
-            <h3>{totalOrdersAccumulator}</h3>
+
+        <div className="dashboard-panel">
+          <div className="panel-header">
+            <h3>
+              Recent Products
+            </h3>
+
+            <button
+              className="text-button"
+              onClick={() =>
+                setSellerSubView(
+                  "products"
+                )
+              }
+            >
+              View all
+            </button>
           </div>
-        </div>
-        <div className="metric-card purple-tint">
-          <div className="card-icon-box">💵</div>
-          <div className="metric-data">
-            <span className="metric-label">Total Revenue</span>
-            <h3>₹ {totalRevenueCalculated.toLocaleString('en-IN')}</h3>
-          </div>
-        </div>
-      </div>
 
-      <div className="dashboard-panel panel-margin">
-        <div className="panel-header">
-          <h3>Recent Products Overview</h3>
-          <button className="text-link-btn" onClick={() => setSellerSubView('products')}>View All →</button>
-        </div>
-        {renderProductsTable(products.slice(0, 5))}
-      </div>
-    </>
-  );
-
-  const renderProductsTab = () => (
-    <div className="dashboard-panel">
-      <div className="panel-header">
-        <h3>Inventory Control Board ({totalProductsCount})</h3>
-        <button className="btn-primary" onClick={handleOpenCreateModal}>+ Add New Product</button>
-      </div>
-      {renderProductsTable(products)}
-    </div>
-  );
-
-  const renderProductsTable = (targetDataset) => (
-    <div className="table-responsive">
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Product</th>
-            <th>Category</th>
-            <th>MRP Price</th>
-            <th>Deal Price</th>
-            <th>Type</th>
-            <th>Stock</th>
-            <th>Status</th>
-            <th className="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {targetDataset.map((item) => (
-            <tr key={item._id}>
-              <td>
-                <img src={item.imageUrls?.[0] || 'https://placehold.co/40x40?text=No+Img'} alt="" className="table-img" />
-              </td>
-              <td className="fw-600">{item.name}</td>
-              <td><span className="text-muted text-sm">{item.category || 'General'}</span></td>
-              <td className="text-strike text-muted">₹ {item.mrpPrice?.toLocaleString('en-IN')}</td>
-              <td className="fw-600 text-dark">₹ {item.discountPrice?.toLocaleString('en-IN')}</td>
-              <td>
-                <span className={`type-badge ${item.transactionType === 'sell' ? 'type-sell' : 'type-other'}`}>
-                  {item.transactionType || 'sell'}
-                </span>
-              </td>
-              <td className={item.stock > 5 ? "text-success fw-600" : "text-danger fw-600"}>{item.stock}</td>
-              <td><span className="status-badge active">Active</span></td>
-              <td>
-                <div className="action-buttons">
-                  <button className="btn-action edit" onClick={() => handleOpenEditModal(item)}>✏️ Edit</button>
-                  <button className="btn-action delete" onClick={() => handleDeleteProduct(item._id, item.name)}>🗑️ Delete</button>
-                </div>
-              </td>
-            </tr>
-          ))}
-          {targetDataset.length === 0 && (
-            <tr>
-              <td colSpan="9" className="text-center text-muted empty-state">No products available in this scope.</td>
-            </tr>
+          {renderProductsTable(
+            products.slice(0, 5)
           )}
-        </tbody>
-      </table>
-    </div>
-  );
+        </div>
+      </>
+    );
 
-  const renderOrdersTab = () => (
-    <div className="dashboard-panel">
-      <div className="panel-header">
-        <h3>Order Fulfillment Matrix</h3>
+  // =========================================================
+  // PRODUCTS TAB
+  // =========================================================
+
+  const renderProductsTab =
+    () => (
+      <div className="dashboard-panel">
+        <div className="panel-header">
+          <div>
+            <h3>
+              Products
+            </h3>
+
+            <span className="panel-count">
+              {totalProductsCount} items
+            </span>
+          </div>
+
+          <button
+            className="btn-primary"
+            onClick={
+              handleOpenCreateModal
+            }
+          >
+            Add Product
+          </button>
+        </div>
+
+        {renderProductsTable(
+          products
+        )}
       </div>
-      <div className="table-responsive">
+    );
+
+  // =========================================================
+  // PRODUCTS TABLE
+  // =========================================================
+
+  const renderProductsTable =
+    (targetDataset) => (
+      <div className="table-wrapper">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Order ID</th>
-              <th>Product Node</th>
-              <th>Customer</th>
-              <th>Date</th>
-              <th>Qty</th>
-              <th>Total Value</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {liveOrders.map((order, idx) => (
-              <tr key={order._id || idx}>
-                <td className="fw-600 text-primary">{order._id ? `ORD-${order._id.slice(-6).toUpperCase()}` : `ORD-2026-${1045 + idx}`}</td>
-                <td>{order.items.map((item) => item.productId).join(', ')}</td>
-                <td>{order.buyerName}</td>
-                <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}</td>
-                <td>{order.items.map((item) => item.quantity).join(', ')}</td>
-                <td className="fw-600">₹ {(((order.totalAmountPaid))).toLocaleString('en-IN')}</td>
-                <td>
-                  <span className={`status-badge status-${order.status?.toLowerCase() || 'pending'}`}>
-                    {order.status || 'Pending'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {liveOrders.length === 0 && (
+            {targetDataset.map(
+              (item) => (
+                <tr
+                  key={
+                    item._id
+                  }
+                >
+                  <td>
+                    <div className="table-product">
+                      <img
+                        src={
+                          item.imageUrls?.[0] ||
+                          "https://placehold.co/60x60?text=No+Image"
+                        }
+                        alt={
+                          item.name
+                        }
+                      />
+
+                      <div>
+                        <strong>
+                          {item.name}
+                        </strong>
+
+                        <span>
+                          {item.sellerName ||
+                            "Seller"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    {item.category ||
+                      "General"}
+                  </td>
+
+                  <td>
+                    <div className="table-price">
+                      <strong>
+                        ₹{" "}
+                        {Number(
+                          item.discountPrice ||
+                            0
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </strong>
+
+                      <del>
+                        ₹{" "}
+                        {Number(
+                          item.mrpPrice ||
+                            0
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </del>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span
+                      className={
+                        item.stock >
+                        5
+                          ? "stock-good"
+                          : "stock-low"
+                      }
+                    >
+                      {item.stock}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span className="status-badge">
+                      Active
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="action-edit"
+                        onClick={() =>
+                          handleOpenEditModal(
+                            item
+                          )
+                        }
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        className="action-delete"
+                        onClick={() =>
+                          handleDeleteProduct(
+                            item._id,
+                            item.name
+                          )
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            )}
+
+            {targetDataset.length ===
+              0 && (
               <tr>
-                <td colSpan="7" className="text-center text-muted empty-state">No transactional orders found in the server registry history.</td>
+                <td
+                  colSpan="6"
+                  className="empty-state"
+                >
+                  No products found.
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    );
 
-  const renderCustomersTab = () => {
-    return (
+  // =========================================================
+  // ORDERS
+  // =========================================================
+
+  const renderOrdersTab =
+    () => (
       <div className="dashboard-panel">
         <div className="panel-header">
-          <h3>Client Lifecycle Ledger</h3>
+          <h3>Orders</h3>
         </div>
-        <div className="table-responsive">
+
+        <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Customer ID</th>
-                <th>Full Name</th>
-                <th>Email Address</th>
-                <th>Geographic Hub</th>
-                <th>Product</th>
-                <th>Orders Count</th>
-                <th>Delivery_date</th>
-                <th>Revenue Contribution</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Products</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
               </tr>
             </thead>
+
             <tbody>
-              {orders.map((c) => (
-                <tr key={c.id}>
-                  <td className="text-muted fw-500">{c.buyerId}</td>
-                  <td className="fw-600">{c.buyerName}</td>
-                  <td>{c.buyerEmail}</td>
-                  <td>{c.address}</td>
-                  <td>
-                    {c.items.map((item) => item.name).join(', ')}
+              {liveOrders.map(
+                (order, index) => (
+                  <tr
+                    key={
+                      order._id ||
+                      index
+                    }
+                  >
+                    <td>
+                      <strong>
+                        {order._id
+                          ? `#${order._id
+                              .slice(
+                                -6
+                              )
+                              .toUpperCase()}`
+                          : `#${1045 + index}`}
+                      </strong>
+                    </td>
+
+                    <td>
+                      {order.buyerName ||
+                        "Customer"}
+                    </td>
+
+                    <td>
+                      {order.items
+                        ?.map(
+                          (item) =>
+                            item.name ||
+                            item.productId
+                        )
+                        .join(", ")}
+                    </td>
+
+                    <td>
+                      {order.createdAt
+                        ? new Date(
+                            order.createdAt
+                          ).toLocaleDateString(
+                            "en-IN"
+                          )
+                        : "-"}
+                    </td>
+
+                    <td>
+                      <strong>
+                        ₹{" "}
+                        {Number(
+                          order.totalAmountPaid ||
+                            0
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          order.status
+                            ? order.status
+                                .toLowerCase()
+                            : ""
+                        }`}
+                      >
+                        {order.status ||
+                          "Pending"}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              )}
+
+              {liveOrders.length ===
+                0 && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="empty-state"
+                  >
+                    No orders found.
                   </td>
-                  <td>
-                    {c.items.map((item) => item.quantity).join(', ')}
-                  </td>
-                  <td>
-                    <span>
-                      {c.DTD ? new Date(c.DTD).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      }) : 'No Date'}
-                    </span>
-                    <span className={`status-badge status-${c.status?.toLowerCase() || 'pending'}`}>
-                      {c.status || 'Pending'}
-                    </span>
-                  </td>
-                  <td className="fw-600 text-success">₹ {c.totalAmountPaid.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
     );
-  };
 
-  const renderAnalyticsTab = () => (
-    <div className="dashboard-panel">
-      <div className="panel-header mb-4">
-        <h3>Strategic Performance Metrics</h3>
-      </div>
+  // =========================================================
+  // CUSTOMERS
+  // =========================================================
 
-      <div className="metrics-grid mb-4">
-        <div className="metric-card pink-tint">
-          <div className="card-icon-box">🎯</div>
-          <div className="metric-data">
-            <span className="metric-label">Average Order Value</span>
-            <h3>₹ {(totalOrdersAccumulator > 0 ? totalRevenueCalculated / totalOrdersAccumulator : 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</h3>
-          </div>
+  const renderCustomersTab =
+    () => (
+      <div className="dashboard-panel">
+        <div className="panel-header">
+          <h3>Customers</h3>
         </div>
-        <div className="metric-card orange-tint">
-          <div className="card-icon-box">⚡</div>
-          <div className="metric-data">
-            <span className="metric-label">Conversion Efficiency</span>
-            <h3>4.82%</h3>
-          </div>
-        </div>
-      </div>
 
-      <div className="visual-allocation-box">
-        <h4 className="box-title">Visual Allocation Status Data Matrix</h4>
-        <div className="progress-list">
-          {products.map(item => {
-            const performanceRatio = totalRevenueCalculated > 0 ? ((((item.ordersCount || 0) * item.discountPrice) / totalRevenueCalculated) * 100) : 0;
-            return (
-              <div key={item._id} className="progress-item">
-                <div className="progress-labels">
-                  <span className="fw-500">{item.name}</span>
-                  <span className="text-muted">{performanceRatio.toFixed(1)}% Share</span>
-                </div>
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill" style={{ width: `${performanceRatio}%` }}></div>
-                </div>
-              </div>
-            );
-          })}
-          {products.length === 0 && <p className="text-sm text-muted">No product metrics data structuralized.</p>}
-        </div>
-      </div>
-    </div>
-  );
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Products</th>
+                <th>Orders</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
 
-  return (
-    <div className="app-wrapper">
-      {isSeller && (
-        <header className="sandbox-header">
-          <div className="sandbox-title">ENVIRONMENT CONTROL PANEL</div>
-          <div className="sandbox-controls">
-            <button className={`toggle-btn ${view === 'buyer' ? 'active' : ''}`} onClick={() => setView('buyer')}>Buyer View</button>
-            <button className={`toggle-btn ${view === 'seller' ? 'active' : ''}`} onClick={() => setView('seller')}>Seller View</button>
-          </div>
-        </header>
-      )}
+            <tbody>
+              {orders.map(
+                (customer, index) => (
+                  <tr
+                    key={
+                      customer._id ||
+                      customer.id ||
+                      index
+                    }
+                  >
+                    <td>
+                      <strong>
+                        {customer.buyerName ||
+                          "Customer"}
+                      </strong>
+                    </td>
 
-      {isSeller && view === 'seller' ? (
-        <div className="seller-dashboard-layout">
-          <aside className="seller-sidebar">
-            <div className="sidebar-brand">Zypcart</div>
-            <nav className="sidebar-menu">
-              <div className={`menu-item ${sellerSubView === 'dashboard' ? 'active' : ''}`} onClick={() => setSellerSubView('dashboard')}>🏠 Dashboard</div>
-              <div className={`menu-item ${sellerSubView === 'products' ? 'active' : ''}`} onClick={() => setSellerSubView('products')}>👜 Products</div>
-              <div className={`menu-item ${sellerSubView === 'orders' ? 'active' : ''}`} onClick={() => setSellerSubView('orders')}>📋 Orders</div>
-              <div className={`menu-item ${sellerSubView === 'customers' ? 'active' : ''}`} onClick={() => setSellerSubView('customers')}>👥 Customers</div>
-              <div className={`menu-item ${sellerSubView === 'analytics' ? 'active' : ''}`} onClick={() => setSellerSubView('analytics')}>📈 Analytics</div>
-              <div className="menu-item logout-accent" onClick={handleLogoutClick}>📤 Logout</div>
-            </nav>
-          </aside>
+                    <td>
+                      {customer.buyerEmail ||
+                        "-"}
+                    </td>
 
-          <main className="seller-content">
-            <div className="seller-header">
-              <h2 className="seller-title">Seller Management: {sellerSubView}</h2>
-              {sellerSubView !== 'products' && (
-                <button className="btn-primary" onClick={handleOpenCreateModal}>+ Add New Product</button>
+                    <td>
+                      {customer.address ||
+                        "-"}
+                    </td>
+
+                    <td>
+                      {customer.items
+                        ?.map(
+                          (item) =>
+                            item.name
+                        )
+                        .join(", ")}
+                    </td>
+
+                    <td>
+                      {customer.items?.reduce(
+                        (sum, item) =>
+                          sum +
+                          Number(
+                            item.quantity ||
+                              0
+                          ),
+                        0
+                      )}
+                    </td>
+
+                    <td>
+                      <strong>
+                        ₹{" "}
+                        {Number(
+                          customer.totalAmountPaid ||
+                            0
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </strong>
+                    </td>
+                  </tr>
+                )
               )}
-            </div>
 
-            {sellerSubView === 'dashboard' && renderDashboardHome()}
-            {sellerSubView === 'products' && renderProductsTab()}
-            {sellerSubView === 'orders' && renderOrdersTab()}
-            {sellerSubView === 'customers' && renderCustomersTab()}
-            {sellerSubView === 'analytics' && renderAnalyticsTab()}
-          </main>
-        </div>
-      ) : (
-        <>
-          {isSeller && <div className="config-banner">BUYER VIEW CONFIGURATION INTERFACE</div>}
-
-          <nav className="main-nav-bar">
-            <div className="nav-brand">
-              <img src="/Zypcart.png" alt="Zypcart Logo" />
-            </div>
-            <div className="nav-search">
-              <input type="text" placeholder="Search product listings..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="search-input" />
-            </div>
-            <div className="bg-uploader-wrapper">
-              <label className="btn-secondary bg-upload-btn">
-                🖼️ Change Background
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBackgroundUpload}
-                  style={{ display: 'none' }}
-                />
-              </label>
-              {userBgImage && (
-                <button onClick={() => setUserBgImage('')} className="btn-remove-bg">
-                  Reset Background
-                </button>
+              {orders.length ===
+                0 && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="empty-state"
+                  >
+                    No customers found.
+                  </td>
+                </tr>
               )}
-            </div>
-            <div className="nav-item cart-item" onClick={() => navigate('/coupon')}>
-              🎟️ coupons
-            </div>
-            <div className="nav-actions">
-              <div className="nav-item" onClick={() => navigate('/orders')}>
-                <span>🕒 Orders</span>
-              </div>
-              <div className="nav-item cart-item" onClick={() => navigate('/cart')}>
-                🛒 Cart {totalCartItemsCount > 0 && <span className="cart-badge">{totalCartItemsCount}</span>}
-              </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
 
-              <div ref={dropdownRef} className="user-profile-menu" onClick={() => setShowDropdown(!showDropdown)}>
-                <div className="avatar-placeholder"></div>
-                <span className="user-name">{user?.name || 'Guest User'}</span>
-                <span className="dropdown-arrow">▼</span>
+  // =========================================================
+  // ANALYTICS
+  // =========================================================
 
-                {showDropdown && (
-                  <div className="account-dropdown" onClick={(e) => e.stopPropagation()}>
-                    <div className="dropdown-header">ACCOUNT MANAGEMENT</div>
-                    <div className="dropdown-item" onClick={() => { setShowDropdown(false); navigate('/profile'); }}>👤 My Profile</div>
-                    <div className="dropdown-divider"></div>
-                    <div className="dropdown-item logout-btn" onClick={handleLogoutClick}>📤 Logout</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </nav>
-        </>
-      )}
+  const renderAnalyticsTab =
+    () => {
+      const averageOrderValue =
+        totalOrdersAccumulator >
+        0
+          ? totalRevenueCalculated /
+            totalOrdersAccumulator
+          : 0;
 
-      {view === 'buyer' && (
-        <div
-          className="marketplace-container"
-          style={{
-            backgroundImage: userBgImage ? `url(${userBgImage})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-            minHeight: '100vh'
-          }}
-        >
-          <div className="marketplace-grid page-animation" key={currentPage}>
-            {currentProducts.map(item => {
-              const isHovered = hoveredProductId === item._id;
-              const activeImgIdx = isHovered ? currentSlideIndex : 0;
-              const imageUrl = item.imageUrls?.[activeImgIdx] || 'https://placehold.co/260x180?text=Zypcart';
-
-              return (
-                <div
-                  key={item._id}
-                  className="product-card glass-card"
-                  onMouseEnter={() => setHoveredProductId(item._id)}
-                  onMouseLeave={() => setHoveredProductId(null)}
-                >
-                  <div className="product-image-container">
-                    <img src={imageUrl} alt={item.name} className="product-image" />
-
-                    {/* Add Image Dots here */}
-                    {item.imageUrls && item.imageUrls.length > 1 && (
-                      <div className="image-dots">
-                        {item.imageUrls.map((_, idx) => (
-                          <span
-                            key={idx}
-                            className={`dot ${activeImgIdx === idx ? 'active' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setHoveredProductId(item._id);
-                              setCurrentSlideIndex(idx);
-                            }}
-                            onMouseEnter={() => {
-                              setHoveredProductId(item._id);
-                              setCurrentSlideIndex(idx);
-                            }}
-                          ></span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <h4 className="product-title">{item.name}</h4>
-
-                  {/* Add Sold by here */}
-                  <div className="product-seller-info">
-                    Sold by: <span className="seller-name">{item.sellerName}</span>
-                  </div>
-
-                  {item.discountReason && (
-                    <span className="discount-badge">
-                      🎉 {item.discountReason}
-                    </span>
-                  )}
-
-                  <div className="product-pricing">
-                    <span className="mrp-price">₹{item.mrpPrice}</span>
-                    <span className="deal-price">₹{item.discountPrice}</span>
-                  </div>
-
-                  <div className="product-actions">
-                    <button type="button" className="btn-secondary flex-1" onClick={() => setSelectedProductDetails(item)}>👁️ Details</button>
-                    <button type="button" className="btn-primary flex-2" onClick={() => handleAddToCart(item._id, item.stock)}>🛒 Add to Cart</button>
-                  </div>
-                </div>
-              );
-            })}
+      return (
+        <div className="dashboard-panel">
+          <div className="panel-header">
+            <h3>Analytics</h3>
           </div>
 
-          {totalPages > 1 && (
-            <div className="pagination-container">
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                ← Prev
-              </button>
-
-              <span className="page-indicator">
-                Page {currentPage} of {totalPages}
+          <div className="metrics-grid">
+            <div className="metric-card">
+              <span className="metric-label">
+                Average Order
               </span>
 
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-
-      {selectedProductDetails && (
-        <div className="modal-overlay">
-          <div className="modal-content specs-modal">
-            <div className="modal-header specs-header">
-              <h3 className="modal-title">{selectedProductDetails.name}</h3>
-              <button type="button" className="modal-close specs-close" onClick={() => setSelectedProductDetails(null)}>×</button>
+              <strong>
+                ₹{" "}
+                {averageOrderValue.toLocaleString(
+                  "en-IN",
+                  {
+                    maximumFractionDigits: 2
+                  }
+                )}
+              </strong>
             </div>
 
-            <div className="modal-body">
-              <table className="specs-table">
-                <tbody>
-                  <tr>
-                    <td className="spec-label">CATEGORY</td>
-                    <td className="spec-value">{selectedProductDetails.category || 'N/A'}</td>
-                  </tr>
-                  {selectedProductDetails.specifications?.map((s, i) => (
-                    <tr key={i}>
-                      <td className="spec-label">{s.key}</td>
-                      <td className="spec-value">{s.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="metric-card">
+              <span className="metric-label">
+                Products
+              </span>
 
-              <button type="button" className="btn-primary full-width mt-4" onClick={() => generatePDFSpecsDocument(selectedProductDetails)}>
-                📄 Download Specification PDF
-              </button>
+              <strong>
+                {totalProductsCount}
+              </strong>
+            </div>
+
+            <div className="metric-card">
+              <span className="metric-label">
+                Revenue
+              </span>
+
+              <strong>
+                ₹{" "}
+                {totalRevenueCalculated.toLocaleString(
+                  "en-IN"
+                )}
+              </strong>
             </div>
           </div>
+
+          <div className="analytics-section">
+            <h4>
+              Product Performance
+            </h4>
+
+            {products.map(
+              (item) => {
+                const ratio =
+                  totalRevenueCalculated >
+                  0
+                    ? (
+                        ((item.ordersCount ||
+                          0) *
+                          Number(
+                            item.discountPrice ||
+                              0
+                          )) /
+                        totalRevenueCalculated
+                      ) * 100
+                    : 0;
+
+                return (
+                  <div
+                    className="progress-item"
+                    key={
+                      item._id
+                    }
+                  >
+                    <div className="progress-top">
+                      <span>
+                        {item.name}
+                      </span>
+
+                      <span>
+                        {ratio.toFixed(
+                          1
+                        )}
+                        %
+                      </span>
+                    </div>
+
+                    <div className="progress-background">
+                      <div
+                        className="progress-fill"
+                        style={{
+                          width: `${Math.min(
+                            ratio,
+                            100
+                          )}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
         </div>
-      )}
+      );
+    };
 
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content form-modal">
-            <div className="modal-header light-header">
-              <h3 className="modal-title text-dark">{isEditing ? 'Modify Catalog Product' : 'Deploy New Product'}</h3>
-              <button type="button" className="modal-close text-muted" onClick={() => setShowModal(false)}>×</button>
-            </div>
+  // =========================================================
+  // BUYER NAV
+  // =========================================================
 
-            <form className="modal-form" onSubmit={handleCreateProductSubmit}>
-              {formError && <div className="form-error">⚠️ {formError}</div>}
+  const renderBuyerNavbar =
+    () => (
+      <nav className="main-navbar">
+        <Link
+          to="/products"
+          className="brand"
+        >
+          <img
+            src="/Zypcart.png"
+            alt="Zypcart"
+          />
+        </Link>
 
-              {isEditing && (
-                <div className="promo-override-box">
-                  <label className="promo-label">⚡ FESTIVAL PROMOTIONAL OVERRIDE</label>
-                  <div className="promo-input-group">
-                    <input type="number" placeholder="Reduction %" value={festivalDiscountPct} onChange={(e) => setFestivalDiscountPct(e.target.value)} className="form-input" />
-                    <button type="button" className="btn-success" onClick={handleFestivalDiscountApply}>Apply</button>
-                  </div>
-                </div>
+        <div className="search-filter-wrapper">
+          <div className="search-box">
+            <span className="search-icon">⌕</span>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="clear-search"
+                type="button"
+                onClick={() => setSearchQuery("")}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div className="filter-container">
+            <button
+              type="button"
+              className={`filter-button ${filterOpen ? "active" : ""}`}
+              onClick={() => setFilterOpen((open) => !open)}
+            >
+              Filter
+              {(selectedCategory !== "All" || priceFilter !== "All") && (
+                <span className="filter-count">1</span>
               )}
+              <span className="filter-arrow">▾</span>
+            </button>
 
-              <div className="form-group">
-                <label className="form-label">Product Title Name</label>
-                <input type="text" name="name" value={newProduct.name} onChange={handleFormInputChange} className="form-input" required />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group flex-1">
-                  <label className="form-label">MRP Price (INR)</label>
-                  <input type="number" name="mrpPrice" value={newProduct.mrpPrice} onChange={handleFormInputChange} className="form-input" required />
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Deal Price (INR)</label>
-                  <input type="number" name="discountPrice" value={newProduct.discountPrice} onChange={handleFormInputChange} className="form-input" required />
-                </div>
-              </div>
-
-              <div className="specifications-box">
-                <div className="specs-header-row">
-                  <label className="specs-label">⚙️ INFINITE SPECIFICATIONS MATRIX</label>
-                  <button type="button" className="text-link-btn" onClick={handleAddSpecificationField}>+ Add Field</button>
-                </div>
-                {newProduct.specifications?.map((spec, idx) => (
-                  <div key={idx} className="spec-input-row">
-                    <input type="text" placeholder="Label" value={spec.key} onChange={(e) => handleUpdateSpecificationField(idx, 'key', e.target.value)} className="form-input flex-1" />
-                    <input type="text" placeholder="Value" value={spec.value} onChange={(e) => handleUpdateSpecificationField(idx, 'value', e.target.value)} className="form-input flex-1" />
-                    <button type="button" className="btn-remove" onClick={() => handleRemoveSpecificationField(idx)}>×</button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Stock Units</label>
-                <input type="number" name="stock" value={newProduct.stock} onChange={handleFormInputChange} className="form-input" required />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Campaign Note</label>
-                <input type="text" name="discountReason" value={newProduct.discountReason} onChange={handleFormInputChange} className="form-input" />
-              </div>
-
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <label className="form-label">Product Images (URLs)</label>
+            {filterOpen && (
+              <div className="filter-panel">
+                <div className="filter-header">
+                  <strong>Filter products</strong>
                   <button
                     type="button"
                     onClick={() => {
-                      const currentUrls = Array.isArray(newProduct.imageUrls)
-                        ? newProduct.imageUrls
-                        : (typeof newProduct.imageUrls === 'string' && newProduct.imageUrls !== '' ? [newProduct.imageUrls] : []);
-
-                      setNewProduct({
-                        ...newProduct,
-                        imageUrls: [...currentUrls, '']
-                      });
+                      setSelectedCategory("All");
+                      setPriceFilter("All");
                     }}
-                    style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}
                   >
-                    + Add Image URL
+                    Clear
                   </button>
                 </div>
 
-                {(Array.isArray(newProduct.imageUrls) ? newProduct.imageUrls :
-                  (typeof newProduct.imageUrls === 'string' && newProduct.imageUrls !== '' ? [newProduct.imageUrls] : [])).map((url, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                <div className="filter-section">
+                  <label>Category</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-section">
+                  <label>Price</label>
+                  <select
+                    value={priceFilter}
+                    onChange={(e) => setPriceFilter(e.target.value)}
+                  >
+                    <option value="All">All prices</option>
+                    <option value="under500">Under ₹500</option>
+                    <option value="500to1000">₹500 – ₹1,000</option>
+                    <option value="1000to5000">₹1,000 – ₹5,000</option>
+                    <option value="above5000">Above ₹5,000</option>
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  className="apply-filter-button"
+                  onClick={() => setFilterOpen(false)}
+                >
+                  Apply filters
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="nav-actions">
+          <button
+            className="nav-link"
+            onClick={() =>
+              navigate("/orders")
+            }
+          >
+            Orders
+          </button>
+
+          <button
+            className="nav-link"
+            onClick={() =>
+              navigate("/coupon")
+            }
+          >
+            Coupons
+          </button>
+
+          <button
+            className="cart-button"
+            onClick={() =>
+              navigate("/cart")
+            }
+          >
+            Cart
+
+            {totalCartItemsCount >
+              0 && (
+              <span className="cart-count">
+                {totalCartItemsCount}
+              </span>
+            )}
+          </button>
+
+          <div
+            ref={dropdownRef}
+            className="profile-wrapper"
+          >
+            <button
+              className="profile-button"
+              onClick={() =>
+                setShowDropdown(
+                  !showDropdown
+                )
+              }
+            >
+              <span className="avatar">
+                {(user?.name ||
+                  "G")
+                  .charAt(0)
+                  .toUpperCase()}
+              </span>
+
+              <span className="profile-name">
+                {user?.name ||
+                  "Guest"}
+              </span>
+
+              <span className="arrow">
+                ▾
+              </span>
+            </button>
+
+            {showDropdown && (
+              <div className="profile-dropdown">
+                <button
+                  onClick={() => {
+                    setShowDropdown(
+                      false
+                    );
+                    navigate(
+                      "/profile"
+                    );
+                  }}
+                >
+                  Profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowDropdown(
+                      false
+                    );
+                    handleLogoutClick();
+                  }}
+                  className="logout-item"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+    );
+
+  // =========================================================
+  // BUYER MARKETPLACE
+  // =========================================================
+
+  const renderMarketplace =
+    () => (
+      <div
+        className="marketplace"
+        style={{
+          backgroundImage:
+            userBgImage
+              ? `url(${userBgImage})`
+              : "none"
+        }}
+      >
+        <div className="marketplace-toolbar">
+          <div>
+            <h2>
+              Products
+            </h2>
+
+            <span>
+              {filteredProducts.length}{" "}
+              products
+            </span>
+          </div>
+
+          <label className="background-button">
+            Change background
+            <input
+              type="file"
+              accept="image/*"
+              onChange={
+                handleBackgroundUpload
+              }
+            />
+          </label>
+
+          {userBgImage && (
+            <button
+              className="reset-background"
+              onClick={() =>
+                setUserBgImage("")
+              }
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
+        {currentProducts.length ===
+        0 ? (
+          <div className="no-products">
+            <h3>
+              No products found
+            </h3>
+
+            <p>
+              Try a different search.
+            </p>
+          </div>
+        ) : (
+          <div className="product-grid">
+            {currentProducts.map(
+              (item) => {
+                const isHovered =
+                  hoveredProductId ===
+                  item._id;
+
+                const activeImage =
+                  isHovered
+                    ? currentSlideIndex
+                    : 0;
+
+                const imageUrl =
+                  item.imageUrls?.[
+                    activeImage
+                  ] ||
+                  "https://placehold.co/600x450?text=Zypcart";
+
+                return (
+                  <div
+                    className="product-card"
+                    key={
+                      item._id
+                    }
+                    onMouseEnter={() => {
+                      setHoveredProductId(
+                        item._id
+                      );
+                      setCurrentSlideIndex(
+                        0
+                      );
+                    }}
+                    onMouseLeave={() =>
+                      setHoveredProductId(
+                        null
+                      )
+                    }
+                  >
+                    <div className="product-image-wrapper">
+                      <img
+                        src={
+                          imageUrl
+                        }
+                        alt={
+                          item.name
+                        }
+                        className="product-image"
+                      />
+
+                      {item.imageUrls
+                        ?.length >
+                        1 && (
+                        <div className="image-dots">
+                          {item.imageUrls.map(
+                            (
+                              _,
+                              index
+                            ) => (
+                              <button
+                                key={
+                                  index
+                                }
+                                className={
+                                  activeImage ===
+                                  index
+                                    ? "dot active"
+                                    : "dot"
+                                }
+                                onClick={(
+                                  e
+                                ) => {
+                                  e.stopPropagation();
+
+                                  setHoveredProductId(
+                                    item._id
+                                  );
+
+                                  setCurrentSlideIndex(
+                                    index
+                                  );
+                                }}
+                              />
+                            )
+                          )}
+                        </div>
+                      )}
+
+                      {item.discountReason && (
+                        <span className="offer-badge">
+                          {
+                            item.discountReason
+                          }
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="product-info">
+                      <span className="product-category">
+                        {item.category ||
+                          "General"}
+                      </span>
+
+                      <h3 className="product-title">
+                        {item.name}
+                      </h3>
+
+                      <div className="product-prices">
+                        <strong>
+                          ₹
+                          {Number(
+                            item.discountPrice ||
+                              0
+                          ).toLocaleString(
+                            "en-IN"
+                          )}
+                        </strong>
+
+                        <del>
+                          ₹
+                          {Number(
+                            item.mrpPrice ||
+                              0
+                          ).toLocaleString(
+                            "en-IN"
+                          )}
+                        </del>
+                      </div>
+
+                      <span className="seller-text">
+                        Sold by{" "}
+                        {item.sellerName ||
+                          "Seller"}
+                      </span>
+
+                      <div className="product-buttons">
+                        <button
+                          className="details-button"
+                          onClick={() =>
+                            setSelectedProductDetails(
+                              item
+                            )
+                          }
+                        >
+                          Details
+                        </button>
+
+                        <button
+                          className="add-cart-button"
+                          onClick={() => handleAddToCart(item._id, item.stock)}
+                          disabled={actionLoading}
+                        >
+                          {actionLoading ? "Adding..." : "Add to Cart"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              disabled={
+                currentPage ===
+                1
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (page) =>
+                    Math.max(
+                      page - 1,
+                      1
+                    )
+                )
+              }
+            >
+              Previous
+            </button>
+
+            <span>
+              {currentPage} /{" "}
+              {totalPages}
+            </span>
+
+            <button
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (page) =>
+                    Math.min(
+                      page + 1,
+                      totalPages
+                    )
+                )
+              }
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+    );
+
+  // =========================================================
+  // PRODUCT DETAILS MODAL
+  // =========================================================
+
+  const renderProductDetails =
+    () => {
+      if (
+        !selectedProductDetails
+      ) {
+        return null;
+      }
+
+      const product =
+        selectedProductDetails;
+
+      return (
+        <div
+          className="modal-overlay"
+          onClick={() =>
+            setSelectedProductDetails(
+              null
+            )
+          }
+        >
+          <div
+            className="details-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <button
+              className="modal-close"
+              onClick={() =>
+                setSelectedProductDetails(
+                  null
+                )
+              }
+            >
+              ×
+            </button>
+
+            <div className="details-image">
+              <img
+                src={
+                  product.imageUrls?.[0] ||
+                  "https://placehold.co/500x400?text=Zypcart"
+                }
+                alt={
+                  product.name
+                }
+              />
+            </div>
+
+            <div className="details-content">
+              <span className="product-category">
+                {product.category ||
+                  "General"}
+              </span>
+
+              <h2>
+                {product.name}
+              </h2>
+
+              <div className="details-price">
+                <strong>
+                  ₹
+                  {Number(
+                    product.discountPrice ||
+                      0
+                  ).toLocaleString(
+                    "en-IN"
+                  )}
+                </strong>
+
+                <del>
+                  ₹
+                  {Number(
+                    product.mrpPrice ||
+                      0
+                  ).toLocaleString(
+                    "en-IN"
+                  )}
+                </del>
+              </div>
+
+              <div className="specifications">
+                <h4>
+                  Specifications
+                </h4>
+
+                <div className="spec-list">
+                  {product.specifications
+                    ?.filter(
+                      (spec) =>
+                        spec.key &&
+                        spec.value
+                    )
+                    .map(
+                      (
+                        spec,
+                        index
+                      ) => (
+                        <div
+                          className="spec-row"
+                          key={
+                            index
+                          }
+                        >
+                          <span>
+                            {
+                              spec.key
+                            }
+                          </span>
+
+                          <strong>
+                            {
+                              spec.value
+                            }
+                          </strong>
+                        </div>
+                      )
+                    )}
+
+                  {(!product.specifications ||
+                    product.specifications
+                      .filter(
+                        (spec) =>
+                          spec.key &&
+                          spec.value
+                      )
+                      .length ===
+                      0) && (
+                    <div className="no-specs">
+                      No specifications
+                      available.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className="download-button"
+                onClick={() =>
+                  generatePDFSpecsDocument(
+                    product
+                  )
+                }
+              >
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+  // =========================================================
+  // PRODUCT FORM MODAL
+  // =========================================================
+
+  const renderProductForm =
+    () => {
+      if (!showModal) {
+        return null;
+      }
+
+      return (
+        <div
+          className="modal-overlay"
+          onClick={() =>
+            setShowModal(false)
+          }
+        >
+          <div
+            className="form-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <div className="form-modal-header">
+              <div>
+                <h2>
+                  {isEditing
+                    ? "Edit Product"
+                    : "Add Product"}
+                </h2>
+
+                <p>
+                  Add product information
+                </p>
+              </div>
+
+              <button
+                className="modal-close"
+                onClick={() =>
+                  setShowModal(false)
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <form
+              onSubmit={
+                handleCreateProductSubmit
+              }
+              className="product-form"
+            >
+              {formError && (
+                <div className="form-error">
+                  {formError}
+                </div>
+              )}
+
+              {isEditing && (
+                <div className="discount-box">
+                  <label>
+                    Quick discount
+                  </label>
+
+                  <div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="%"
+                      value={
+                        festivalDiscountPct
+                      }
+                      onChange={(e) =>
+                        setFestivalDiscountPct(
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleFestivalDiscountApply
+                      }
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>
+                  Product name
+                </label>
+
+                <input
+                  type="text"
+                  name="name"
+                  value={
+                    newProduct.name
+                  }
+                  onChange={
+                    handleFormInputChange
+                  }
+                  placeholder="Enter product name"
+                  required
+                />
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>
+                    Category
+                  </label>
+
+                  <select
+                    name="category"
+                    value={
+                      newProduct.category
+                    }
+                    onChange={
+                      handleFormInputChange
+                    }
+                  >
+                    <option>
+                      Electronics
+                    </option>
+                    <option>
+                      Fashion
+                    </option>
+                    <option>
+                      Home
+                    </option>
+                    <option>
+                      Beauty
+                    </option>
+                    <option>
+                      Sports
+                    </option>
+                    <option>
+                      Grocery
+                    </option>
+                    <option>
+                      Other
+                    </option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    Stock
+                  </label>
+
+                  <input
+                    type="number"
+                    name="stock"
+                    min="0"
+                    value={
+                      newProduct.stock
+                    }
+                    onChange={
+                      handleFormInputChange
+                    }
+                    placeholder="0"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>
+                    MRP
+                  </label>
+
+                  <input
+                    type="number"
+                    name="mrpPrice"
+                    min="0"
+                    value={
+                      newProduct.mrpPrice
+                    }
+                    onChange={
+                      handleFormInputChange
+                    }
+                    placeholder="₹ 0"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    Sale price
+                  </label>
+
+                  <input
+                    type="number"
+                    name="discountPrice"
+                    min="0"
+                    value={
+                      newProduct.discountPrice
+                    }
+                    onChange={
+                      handleFormInputChange
+                    }
+                    placeholder="₹ 0"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="section-title-row">
+                  <label>
+                    Images
+                  </label>
+
+                  <button
+                    type="button"
+                    className="add-small-button"
+                    onClick={
+                      handleAddImage
+                    }
+                  >
+                    + Add image
+                  </button>
+                </div>
+
+                {newProduct.imageUrls.map(
+                  (
+                    url,
+                    index
+                  ) => (
+                    <div
+                      className="image-input-row"
+                      key={
+                        index
+                      }
+                    >
                       <input
                         type="text"
                         value={url}
-                        onChange={(e) => {
-                          const currentUrls = Array.isArray(newProduct.imageUrls)
-                            ? [...newProduct.imageUrls]
-                            : [newProduct.imageUrls];
-
-                          currentUrls[idx] = e.target.value;
-                          setNewProduct({ ...newProduct, imageUrls: currentUrls });
-                        }}
-                        className="form-input"
+                        onChange={(
+                          e
+                        ) =>
+                          handleUpdateImage(
+                            index,
+                            e.target.value
+                          )
+                        }
                         placeholder="https://..."
-                        style={{ flex: 1 }}
                       />
+
                       <button
                         type="button"
-                        onClick={() => {
-                          const updatedUrls = (Array.isArray(newProduct.imageUrls) ? newProduct.imageUrls : [newProduct.imageUrls]).filter((_, i) => i !== idx);
-                          setNewProduct({ ...newProduct, imageUrls: updatedUrls });
-                        }}
-                        style={{ background: '#fef2f2', color: '#ef4444', border: 'none', padding: '0 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                        className="remove-button"
+                        onClick={() =>
+                          handleRemoveImage(
+                            index
+                          )
+                        }
                       >
-                        ✕
+                        ×
                       </button>
                     </div>
-                  ))}
+                  )
+                )}
 
-                {(!newProduct.imageUrls || newProduct.imageUrls.length === 0) && (
-                  <div style={{ fontSize: '0.85rem', color: '#64748b', padding: '8px', background: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
-                    No images added yet. Click "+ Add Image URL" above.
+                {newProduct
+                  .imageUrls
+                  .length ===
+                  0 && (
+                  <div className="empty-input">
+                    No images added
                   </div>
                 )}
               </div>
 
+              <div className="form-group">
+                <div className="section-title-row">
+                  <label>
+                    Specifications
+                  </label>
+
+                  <button
+                    type="button"
+                    className="add-small-button"
+                    onClick={
+                      handleAddSpecificationField
+                    }
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {newProduct.specifications.map(
+                  (
+                    spec,
+                    index
+                  ) => (
+                    <div
+                      className="spec-input-row"
+                      key={
+                        index
+                      }
+                    >
+                      <input
+                        type="text"
+                        placeholder="Name"
+                        value={
+                          spec.key
+                        }
+                        onChange={(
+                          e
+                        ) =>
+                          handleUpdateSpecificationField(
+                            index,
+                            "key",
+                            e.target
+                              .value
+                          )
+                        }
+                      />
+
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={
+                          spec.value
+                        }
+                        onChange={(
+                          e
+                        ) =>
+                          handleUpdateSpecificationField(
+                            index,
+                            "value",
+                            e.target
+                              .value
+                          )
+                        }
+                      />
+
+                      <button
+                        type="button"
+                        className="remove-button"
+                        onClick={() =>
+                          handleRemoveSpecificationField(
+                            index
+                          )
+                        }
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Offer
+                </label>
+
+                <input
+                  type="text"
+                  name="discountReason"
+                  value={
+                    newProduct.discountReason
+                  }
+                  onChange={
+                    handleFormInputChange
+                  }
+                  placeholder="Example: 20% OFF"
+                />
+              </div>
+
               <div className="form-actions">
-                <button type="button" className="btn-secondary flex-1" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary flex-2">Save Changes</button>
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() =>
+                    setShowModal(false)
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="save-button"
+                >
+                  {isEditing
+                    ? "Save changes"
+                    : "Add product"}
+                </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      );
+    };
 
-      <footer className="Zypcart-footer">
-        <div className="footer-container">
-          <div className="footer-section brand-section">
-            <h2 className="footer-brand">Zypcart</h2>
-            <p className="footer-description">
-              Your premium marketplace for high-quality electronics, gadgets, and everyday essentials. Seamless shopping, delivered to your door.
+  // =========================================================
+  // SELLER LAYOUT
+  // =========================================================
+
+  const renderSellerDashboard =
+    () => (
+      <div className="seller-layout">
+        <aside className="seller-sidebar">
+          <Link
+            to="/products"
+            className="seller-logo"
+          >
+            <img
+              src="/Zypcart.png"
+              alt="Zypcart"
+            />
+          </Link>
+
+          <nav className="seller-menu">
+            <button
+              className={
+                sellerSubView ===
+                "dashboard"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSellerSubView(
+                  "dashboard"
+                )
+              }
+            >
+              Dashboard
+            </button>
+
+            <button
+              className={
+                sellerSubView ===
+                "products"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSellerSubView(
+                  "products"
+                )
+              }
+            >
+              Products
+            </button>
+
+            <button
+              className={
+                sellerSubView ===
+                "orders"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSellerSubView(
+                  "orders"
+                )
+              }
+            >
+              Orders
+            </button>
+
+            <button
+              className={
+                sellerSubView ===
+                "customers"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSellerSubView(
+                  "customers"
+                )
+              }
+            >
+              Customers
+            </button>
+
+            <button
+              className={
+                sellerSubView ===
+                "analytics"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSellerSubView(
+                  "analytics"
+                )
+              }
+            >
+              Analytics
+            </button>
+          </nav>
+
+          <button
+            className="seller-logout"
+            onClick={
+              handleLogoutClick
+            }
+          >
+            Logout
+          </button>
+        </aside>
+
+        <main className="seller-main">
+          <header className="seller-topbar">
+            <div>
+              <h1>
+                {sellerSubView ===
+                "dashboard"
+                  ? "Dashboard"
+                  : sellerSubView
+                      .charAt(0)
+                      .toUpperCase() +
+                    sellerSubView.slice(
+                      1
+                    )}
+              </h1>
+
+              <p>
+                Welcome back,{" "}
+                {user?.name ||
+                  "Seller"}
+              </p>
+            </div>
+
+            <div className="seller-top-actions">
+              <button
+                className="view-store-button"
+                onClick={() =>
+                  setView(
+                    "buyer"
+                  )
+                }
+              >
+                View store
+              </button>
+
+              {sellerSubView !==
+                "products" && (
+                <button
+                  className="btn-primary"
+                  onClick={
+                    handleOpenCreateModal
+                  }
+                >
+                  Add Product
+                </button>
+              )}
+            </div>
+          </header>
+
+          {sellerSubView ===
+            "dashboard" &&
+            renderDashboardHome()}
+
+          {sellerSubView ===
+            "products" &&
+            renderProductsTab()}
+
+          {sellerSubView ===
+            "orders" &&
+            renderOrdersTab()}
+
+          {sellerSubView ===
+            "customers" &&
+            renderCustomersTab()}
+
+          {sellerSubView ===
+            "analytics" &&
+            renderAnalyticsTab()}
+        </main>
+      </div>
+    );
+
+  // =========================================================
+  // FOOTER
+  // =========================================================
+
+  const renderFooter =
+    () => (
+      <footer className="footer">
+        <div className="footer-inner">
+          <div>
+            <h3>Zypcart</h3>
+
+            <p>
+              Simple shopping.
+              Great products.
             </p>
           </div>
 
-          <div className="footer-section">
-            <h3 className="footer-heading">Quick Links</h3>
-            <ul className="footer-links">
-              <li><Link to="/products">Shop Catalog</Link></li>
-              <li><Link to="/orders">Order History</Link></li>
-              <li><Link to="/cart">My Cart</Link></li>
-              <li><Link to="/profile">My Account</Link></li>
-              <li><Link to="/coupon">My Coupons</Link></li>
-            </ul>
+          <div>
+            <h4>Shop</h4>
+
+            <Link to="/products">
+              Products
+            </Link>
+
+            <Link to="/cart">
+              Cart
+            </Link>
+
+            <Link to="/orders">
+              Orders
+            </Link>
           </div>
 
-          <div className="footer-section">
-            <h3 className="footer-heading">Customer Support</h3>
-            <ul className="footer-links">
-              <li><a href="mailto:support@Zypcart.com">Contact Us</a></li>
-              <li><Link to="/returns">Returns & Refunds</Link></li>
-              <li><Link to="/shipping">Shipping Information</Link></li>
-              <li><Link to="/faq">FAQs</Link></li>
-            </ul>
+          <div>
+            <h4>Account</h4>
+
+            <Link to="/profile">
+              Profile
+            </Link>
+
+            <Link to="/coupon">
+              Coupons
+            </Link>
           </div>
 
-          <div className="footer-section">
-            <h3 className="footer-heading">Connect With Us</h3>
-            <div className="social-links">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer">𝕏 Twitter</a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer">📸 Instagram</a>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer">📘 Facebook</a>
-            </div>
+          <div>
+            <h4>Support</h4>
+
+            <Link to="/faq">
+              FAQ
+            </Link>
+
+            <Link to="/returns">
+              Returns
+            </Link>
+
+            <Link to="/shipping">
+              Shipping
+            </Link>
           </div>
         </div>
+
         <div className="footer-bottom">
-          <p>&copy; {currentYear} Zypcart  Marketplace. All rights reserved.</p>
+          © {currentYear} Zypcart
         </div>
       </footer>
+    );
 
-      {/* --- Zypcart  SMART ASSIST V3.0 UI RENDERING MATRIX --- */}
-      <div className={`sri-ai-container ${showSri ? 'panel-open' : ''}`}>
-        {showSri && (
-          <div className="sri-panel">
-            <div className="sri-header">
-              <div className="sri-brand">
-                <div className="sri-dot-pulse"></div>
-                <span>ZYPCART SMART ASSIST</span>
-              </div>
-              <button className="sri-close" onClick={() => setShowSri(false)}>✕</button>
-            </div>
+  // =========================================================
+  // INITIAL LOADING SCREEN
+  // =========================================================
 
-            <div className="sri-chat-log">
-              {sriMessages.map((msg, i) => (
-                <div key={i} className={`sri-msg ${msg.sender}`}>
-                  {msg.text}
-                </div>
-              ))}
-            </div>
-
-            <div className="sri-quick-actions">
-              <button onClick={() => executeSriAutomation('switch to buyer')}>Buyer Home</button>
-              {isSeller && <button onClick={() => executeSriAutomation('switch to seller')}>Merchant Grid</button>}
-              <button onClick={() => executeSriAutomation('clear filters')}>Clear Filters</button>
-              <button onClick={() => executeSriAutomation('open cart')}>Cart View</button>
-            </div>
-
-            <form className="sri-input-box" onSubmit={handleSriCommand}>
-              <input
-                type="text"
-                placeholder="Ask attribute specs or command automation..."
-                value={sriInput}
-                onChange={(e) => setSriInput(e.target.value)}
-              />
-              <button type="submit">⚡</button>
-            </form>
+  if (pageLoading) {
+    return (
+      <div className="page-loading-screen">
+        <div className="loading-content">
+          <div className="loading-logo">
+            <img src="/Zypcart.png" alt="Zypcart" />
           </div>
-        )}
-
-        <button className="sri-fab" onClick={() => setShowSri(!showSri)}>
-          <div className="sri-glow-ring"></div>
-          <div className="sri-core">
-            <span className="sri-icon">
-              <img className='sri-logo' src="/ai.png" alt="Ai" />
-            </span>
-          </div>
-        </button>
+          <div className="loading-spinner" />
+          <h2>Loading Zypcart</h2>
+          <p>Preparing your shopping experience...</p>
+        </div>
       </div>
-      {/* --- Zypcart SMART ASSIST V3.0 UI RENDERING MATRIX --- */}
+    );
+  }
 
+  // =========================================================
+  // MAIN RETURN
+  // =========================================================
+
+  return (
+    <div className="app">
+      {isSeller && (
+        <div className="view-switcher">
+          <button
+            className={
+              view === "buyer"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setView("buyer")
+            }
+          >
+            Store
+          </button>
+
+          <button
+            className={
+              view === "seller"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setView("seller")
+            }
+          >
+            Seller
+          </button>
+        </div>
+      )}
+
+      {isSeller &&
+      view === "seller" ? (
+        renderSellerDashboard()
+      ) : (
+        <>
+          {renderBuyerNavbar()}
+          {renderMarketplace()}
+          {renderFooter()}
+        </>
+      )}
+
+      {renderProductDetails()}
+      {renderProductForm()}
     </div>
   );
 }
+
+export default Products

@@ -1,725 +1,947 @@
-import { useContext, useState, useEffect, useRef } from 'react';
-import { useNavigate, useRouteLoaderData } from 'react-router-dom';
-import './Profile.css';
-import { AuthContext } from '../context/AuthContext';
+import { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Profile.css";
+import { AuthContext } from "../context/AuthContext";
 
 function Profile() {
   const { user, logout, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // --- UI & Lock Control States ---
-  const [hasPhone, setHasPhone] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [isAccountUnlocked, setIsAccountUnlocked] = useState(false);
-  const [hasSetPin, setHasSetPin] = useState(false);
-  const [pinInput, setPinInput] = useState('');
-  const [sensitiveData, setSensitiveData] = useState({ email: '', phone: '' });
-  const [showPassword, setShowPassword] = useState(false);
+  const API_BASE_URL = "https://zypcart-user-backend.onrender.com/api/auth";
+  const userId = user?._id || user?.id;
 
-  // --- Action Form Panel Toggles ---
-  const [phoneInput, setPhoneInput] = useState('');
+  const [pageLoading, setPageLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const [hasPhone, setHasPhone] = useState(false);
+  const [showPhoneForm, setShowPhoneForm] = useState(false);
+  const [isAccountUnlocked, setIsAccountUnlocked] = useState(false);
+  const [hasSetPin, setHasSetPin] = useState(!!user?.hasPin);
+  const [pinInput, setPinInput] = useState("");
+  const [sensitiveData, setSensitiveData] = useState({ email: "", phone: "" });
+
+  const [phoneInput, setPhoneInput] = useState("");
+  const [needsCountryCode, setNeedsCountryCode] = useState(false);
+  const [countryCode, setCountryCode] = useState("+91");
+
   const [isChangingPin, setIsChangingPin] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmPinPassword, setConfirmPinPassword] = useState("");
+  const [newPinInput, setNewPinInput] = useState("");
 
-  // --- Input Element Value Holders ---
-  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
-  const [newPasswordInput, setNewPasswordInput] = useState('');
-  const [confirmPinPassword, setConfirmPinPassword] = useState('');
-  const [newPinInput, setNewPinInput] = useState('');
-
-  // --- New Phone-Only Upgrade States ---
   const [isVerifyingSeller, setIsVerifyingSeller] = useState(false);
-  const [upgradeOtpInput, setUpgradeOtpInput] = useState('');
+  const [upgradeOtpInput, setUpgradeOtpInput] = useState("");
   const [isUpgradeOtpSent, setIsUpgradeOtpSent] = useState(false);
 
-  // --- Deactivation States ---
   const [isDeactivatingSeller, setIsDeactivatingSeller] = useState(false);
-  const [deactivateOtpInput, setDeactivateOtpInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [deactivateOtpInput, setDeactivateOtpInput] = useState("");
 
-  const [needsCountryCode, setNeedsCountryCode] = useState(false);
-  const [countryCode, setCountryCode] = useState('+91');
-
-  // --- 📦 Dynamic Address Array State Management ---
-  const [selectedAddressId, setSelectedAddressId] = useState('');
-  const [addresses, setAddresses] = useState([]); // Base array that holds all shipping addresses
-
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState(null);
-
-  // Unified Address Form structure
   const [addressForm, setAddressForm] = useState({
-    name: '', street: '', cityStateZip: '', country: 'India', phone: ''
+    name: "",
+    street: "",
+    cityStateZip: "",
+    country: "India",
+    phone: ""
   });
 
-  const countryCodes = [
-    { code: '+91', label: 'India (+91)' },
-    { code: '+1', label: 'USA/Canada (+1)' },
-    { code: '+44', label: 'UK (+44)' },
-    { code: '+971', label: 'UAE (+971)' },
-    { code: '+61', label: 'Australia (+61)' },
-  ];
-
-  const API_BASE_URL = 'https://zypcart-user-backend.onrender.com/api/auth';
-  const userId = user?._id || user?.id;
   const intervalRef = useRef(null);
 
-  // Load standard address array once unlocked
-  useEffect(() => {
-    if (isAccountUnlocked && userId) {
-      fetchUserAddresses();
-    }
-  }, [isAccountUnlocked, userId]);
+  const countryCodes = [
+    { code: "+91", label: "India (+91)" },
+    { code: "+1", label: "USA / Canada (+1)" },
+    { code: "+44", label: "UK (+44)" },
+    { code: "+971", label: "UAE (+971)" },
+    { code: "+61", label: "Australia (+61)" }
+  ];
 
-  const fetchUserAddresses = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/${userId}/addresses`);
-      const data = await res.json();
-      if (res.ok) {
-        setAddresses(data.addresses || []); // Push backend address array block directly into state array
-        setSelectedAddressId(data.selectedAddressId || '');
-      }
-    } catch (err) {
-      console.error("Error retrieving array payload:", err);
-    }
-  };
+  const getHeaders = () => ({ "Content-Type": "application/json" });
 
-  // Live 2-Second Background Status Check Poller Loop
+  // Initial profile gate: do not expose profile UI until account status is known.
   useEffect(() => {
     if (!userId) return;
 
-    if (!user?.phone) {
-      setHasPhone(false);
-      setShowForm(false);
+    let cancelled = false;
 
-      const formTimer = setTimeout(() => {
-        setShowForm(true);
-      }, 5000);
+    const initializeProfile = async () => {
+      setPageLoading(true);
+      setProfileReady(false);
 
-      intervalRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(`${API_BASE_URL}/${userId}/phone_status`);
-          const data = await res.json();
+      try {
+        const response = await fetch(`${API_BASE_URL}/${userId}/phone_status`);
+        const data = await response.json();
 
-          if (data.hasPhone) {
-            setHasPhone(true);
-            setHasSetPin(!!useRouteLoaderData.hasPin);
-            setSensitiveData(prev => ({ ...prev, phone: data.phone }));
+        if (cancelled) return;
 
-            if (setUser) {
-              setUser(prevUser => ({
-                ...prevUser,
-                phone: data.phone,
-                hasPin: user.hasPin
-              }));
-            }
-            clearInterval(intervalRef.current);
-            clearTimeout(formTimer);
-          }
-        } catch (err) {
-          console.error("Live sync polling runtime exception:", err);
+        if (response.ok && data.hasPhone) {
+          setHasPhone(true);
+          setShowPhoneForm(false);
+          setHasSetPin(!!user?.hasPin);
+          setSensitiveData((prev) => ({
+            ...prev,
+            phone: data.phone || user?.phone || ""
+          }));
+        } else {
+          setHasPhone(false);
+          setShowPhoneForm(true);
+          setHasSetPin(!!user?.hasPin);
         }
-      }, 2000);
 
-      return () => {
-        clearInterval(intervalRef.current);
-        clearTimeout(formTimer);
-      };
-    } else {
-      setHasPhone(true);
-      setHasSetPin(!!user.hasPin);
-    }
-  }, [user, userId, setUser]);
+        setProfileReady(true);
+      } catch (error) {
+        console.error("Profile initialization failed:", error);
+        if (!cancelled) {
+          // Fall back to locally available user information.
+          const localPhone = user?.phone || "";
+          setHasPhone(!!localPhone);
+          setHasSetPin(!!user?.hasPin);
+          setSensitiveData((prev) => ({
+            ...prev,
+            email: user?.email || prev.email,
+            phone: localPhone || prev.phone
+          }));
+          setShowPhoneForm(!localPhone);
+          setProfileReady(true);
+        }
+      } finally {
+        if (!cancelled) setPageLoading(false);
+      }
+    };
 
-  const getHeaders = () => ({ 'Content-Type': 'application/json' });
+    initializeProfile();
 
-  const handlePhoneChange = (e) => {
-    const val = e.target.value;
-    setPhoneInput(val);
-    if (val.length > 0 && !val.startsWith('+')) {
-      setNeedsCountryCode(true);
-    } else {
-      setNeedsCountryCode(false);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  const fetchUserAddresses = async () => {
+    if (!userId) return;
+
+    setAddressesLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/${userId}/addresses`);
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to load addresses.");
+
+      setAddresses(Array.isArray(data.addresses) ? data.addresses : []);
+      setSelectedAddressId(data.selectedAddressId || "");
+    } catch (error) {
+      console.error("Address loading failed:", error);
+    } finally {
+      setAddressesLoading(false);
     }
   };
 
-  const handleUpdatePhoneSubmit = async (e) => {
-    e.preventDefault();
+  const unlockWithData = async (data) => {
+    setIsAccountUnlocked(true);
+    setSensitiveData(data?.sensitiveData || {
+      email: user?.email || "",
+      phone: user?.phone || ""
+    });
+    setPinInput("");
+    await fetchUserAddresses();
+  };
+
+  const handlePhoneChange = (event) => {
+    const value = event.target.value;
+    setPhoneInput(value);
+    setNeedsCountryCode(value.length > 0 && !value.startsWith("+"));
+  };
+
+  const handleUpdatePhoneSubmit = async (event) => {
+    event.preventDefault();
+
     let formattedPhone = phoneInput.trim();
-    if (!formattedPhone) return alert('Please enter a valid phone number');
-    if (!formattedPhone.startsWith('+')) formattedPhone = `${countryCode}${formattedPhone}`;
-    if (formattedPhone.length < 10) return alert('Please enter a valid phone number length');
+    if (!formattedPhone) return alert("Please enter a valid phone number.");
+    if (!formattedPhone.startsWith("+")) formattedPhone = `${countryCode}${formattedPhone}`;
+    if (formattedPhone.length < 10) return alert("Please enter a valid phone number.");
 
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/add_phone`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/add_phone`, {
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ phone: formattedPhone })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      const data = await response.json();
 
-      alert(data.message);
-      clearInterval(intervalRef.current);
+      if (!response.ok) throw new Error(data.message || "Failed to add phone number.");
+
       setHasPhone(true);
+      setShowPhoneForm(false);
       setHasSetPin(!!data.hasPin);
-      setSensitiveData(prev => ({ ...prev, phone: data.phone }));
-      if (setUser) setUser(prevUser => ({ ...prevUser, phone: data.phone, hasPin: data.hasPin }));
-    } catch (err) {
-      alert(err.message || 'Failed to update phone context mapping');
+      setSensitiveData((prev) => ({ ...prev, phone: data.phone || formattedPhone }));
+
+      if (setUser) {
+        setUser((prev) => ({
+          ...prev,
+          phone: data.phone || formattedPhone,
+          hasPin: !!data.hasPin
+        }));
+      }
+
+      alert(data.message || "Phone number added successfully.");
+    } catch (error) {
+      alert(error.message);
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
-  const handleSetupPin = async (e) => {
-    e.preventDefault();
-    if (pinInput.length !== 4) return alert('PIN must be 4 digits');
+  const handleSetupPin = async (event) => {
+    event.preventDefault();
+    if (pinInput.length !== 4) return alert("PIN must contain exactly 4 digits.");
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/setup_pin`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/setup_pin`, {
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ pin: pinInput })
       });
-      if (!res.ok) throw new Error((await res.json()).message);
-      alert("PIN configured successfully!");
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to create PIN.");
+
       setHasSetPin(true);
-      setIsAccountUnlocked(true);
-      setPinInput('');
-      setSensitiveData({ email: user?.email || '', phone: user?.phone || phoneInput });
-      if (setUser) setUser(prev => ({ ...prev, hasPin: true }));
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      if (setUser) setUser((prev) => ({ ...prev, hasPin: true }));
+      await unlockWithData({
+        sensitiveData: {
+          email: user?.email || "",
+          phone: user?.phone || phoneInput || ""
+        }
+      });
+      alert(data.message || "PIN created successfully.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleVerifyPin = async (e) => {
-    e.preventDefault();
-    if (pinInput.length !== 4) return alert('PIN must be 4 digits');
+  const handleVerifyPin = async (event) => {
+    event.preventDefault();
+    if (pinInput.length !== 4) return alert("PIN must contain exactly 4 digits.");
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/verify_pin`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/verify_pin`, {
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ pin: pinInput })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      setIsAccountUnlocked(true);
-      setSensitiveData(data.sensitiveData);
-      setPinInput('');
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Incorrect PIN.");
+      await unlockWithData(data);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleChangePasswordSubmit = async (e) => {
-    e.preventDefault();
+  const handleChangePasswordSubmit = async (event) => {
+    event.preventDefault();
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/change_password`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/change_password`, {
+        method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ currentPassword: currentPasswordInput, newPassword: newPasswordInput })
+        body: JSON.stringify({
+          currentPassword: currentPasswordInput,
+          newPassword: newPasswordInput
+        })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
-      if (setUser) setUser(prev => ({ ...prev, password: data.updatedPassword, org_password: newPasswordInput }));
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to update password.");
+
       setIsChangingPassword(false);
-      setCurrentPasswordInput('');
-      setNewPasswordInput('');
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      setCurrentPasswordInput("");
+      setNewPasswordInput("");
+      alert(data.message || "Password updated successfully.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleChangePinSubmit = async (e) => {
-    e.preventDefault();
-    if (newPinInput.length !== 4) return alert("New PIN must be exactly 4 digits");
+  const handleChangePinSubmit = async (event) => {
+    event.preventDefault();
+    if (newPinInput.length !== 4) return alert("New PIN must contain exactly 4 digits.");
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/change_pin`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/change_pin`, {
+        method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ password: confirmPinPassword, newPin: newPinInput })
+        body: JSON.stringify({
+          password: confirmPinPassword,
+          newPin: newPinInput
+        })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to update PIN.");
+
       setIsChangingPin(false);
-      setConfirmPinPassword('');
-      setNewPinInput('');
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      setConfirmPinPassword("");
+      setNewPinInput("");
+      alert(data.message || "PIN updated successfully.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleRequestUpgradeOtp = async () => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/request_upgrade_otp`, { method: 'POST', headers: getHeaders() });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/request_upgrade_otp`, {
+        method: "POST",
+        headers: getHeaders()
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to send verification code.");
       setIsUpgradeOtpSent(true);
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      alert(data.message || "Verification code sent.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleConfirmUpgradeSubmit = async (e) => {
-    e.preventDefault();
+  const handleConfirmUpgradeSubmit = async (event) => {
+    event.preventDefault();
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/confirm_upgrade`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/confirm_upgrade`, {
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ otp: upgradeOtpInput })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
-      setUser({ ...user, role: data.role });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Invalid verification code.");
+
+      if (setUser) setUser((prev) => ({ ...prev, role: data.role }));
       setIsVerifyingSeller(false);
       setIsUpgradeOtpSent(false);
-      setUpgradeOtpInput('');
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      setUpgradeOtpInput("");
+      alert(data.message || "Seller account activated.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleRequestDeactivation = async () => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/request_deactivation_otp`, { method: 'POST', headers: getHeaders() });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/request_deactivation_otp`, {
+        method: "POST",
+        headers: getHeaders()
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Unable to send verification code.");
       setIsDeactivatingSeller(true);
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      alert(data.message || "Verification code sent.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleConfirmDeactivationSubmit = async (e) => {
-    e.preventDefault();
+  const handleConfirmDeactivationSubmit = async (event) => {
+    event.preventDefault();
+
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/${userId}/confirm_deactivation`, {
-        method: 'POST',
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/confirm_deactivation`, {
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ otp: deactivateOtpInput })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      alert(data.message);
-      setUser({ ...user, role: data.role });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Invalid verification code.");
+
+      if (setUser) setUser((prev) => ({ ...prev, role: data.role }));
       setIsDeactivatingSeller(false);
-      setDeactivateOtpInput('');
-    } catch (err) { alert(err.message); } finally { setLoading(false); }
+      setDeactivateOtpInput("");
+      alert(data.message || "Seller account deactivated.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  // --- 📦 Array Selection & Submission Handlers ---
   const handleSelectActiveAddressId = async (id) => {
-    // Safeguard: Prevent hitting the backend if the ID is missing or undefined
-    if (!id) {
-      console.warn("Warning: Received empty or undefined address ID selector.");
-      return;
-    }
-
+    if (!id) return;
     setSelectedAddressId(id);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/${userId}/addresses/select`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/${userId}/addresses/select`, {
+        method: "PUT",
         headers: getHeaders(),
-        body: JSON.stringify({ addressId: id }) // Will now send a valid 24-character hex string
+        body: JSON.stringify({ addressId: id })
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Server rejected selection update');
-      }
-    } catch (err) {
-      console.error("Failed to select address item location state:", err);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to select address.");
+    } catch (error) {
+      console.error(error);
+      await fetchUserAddresses();
     }
   };
 
-  const handleSaveAddressSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      let url = `${API_BASE_URL}/${userId}/addresses`;
-      let method = 'POST'; // Automatically appends/pushes new address to the backend array
-
-      if (editingAddressId) {
-        url = `${API_BASE_URL}/${userId}/addresses/${editingAddressId}`;
-        method = 'PUT';
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: getHeaders(),
-        body: JSON.stringify(addressForm)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      alert(data.message);
-      setAddresses(data.addresses || []); // Reset state cleanly with updated array structure
-      if (data.selectedAddressId) setSelectedAddressId(data.selectedAddressId);
-
-      setIsAddingNew(false);
-      setEditingAddressId(null);
-      setAddressForm({ name: '', street: '', cityStateZip: '', country: 'India', phone: '' });
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const triggerEditMode = (addr) => {
-    setEditingAddressId(addr._id || addr.id);
+  const resetAddressForm = () => {
     setIsAddingNew(false);
+    setEditingAddressId(null);
     setAddressForm({
-      name: addr.name, street: addr.street, cityStateZip: addr.cityStateZip, country: addr.country, phone: addr.phone
+      name: "",
+      street: "",
+      cityStateZip: "",
+      country: "India",
+      phone: ""
     });
   };
 
-  const triggerAddNewMode = () => {
-    setIsAddingNew(true);
-    setEditingAddressId(null);
-    setAddressForm({ name: '', street: '', cityStateZip: '', country: 'India', phone: '' });
-  };
+  const handleSaveAddressSubmit = async (event) => {
+    event.preventDefault();
 
-
-  const handleDeleteAddress = async (addressId) => {
-    // Safeguard confirmation window modal prompt
-    const confirmDelete = window.confirm("Are you sure you want to permanently delete this address?");
-    if (!confirmDelete) return;
-
-    setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/${userId}/addresses/${addressId}`, {
-        method: 'DELETE',
-        headers: getHeaders()
+      setActionLoading(true);
+
+      const editing = !!editingAddressId;
+      const url = editing
+        ? `${API_BASE_URL}/${userId}/addresses/${editingAddressId}`
+        : `${API_BASE_URL}/${userId}/addresses`;
+
+      const response = await fetch(url, {
+        method: editing ? "PUT" : "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(addressForm)
       });
+      const data = await response.json();
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!response.ok) throw new Error(data.message || "Unable to save address.");
 
-      alert(data.message);
-      setAddresses(data.addresses || []); // Directly update the frontend state array
-      if (data.selectedAddressId) setSelectedAddressId(data.selectedAddressId);
-
-    } catch (err) {
-      alert(err.message || "Failed to remove address element");
+      setAddresses(data.addresses || []);
+      setSelectedAddressId(data.selectedAddressId || selectedAddressId);
+      resetAddressForm();
+      alert(data.message || "Address saved.");
+    } catch (error) {
+      alert(error.message);
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
-  return (
-    <div className="profile-page-container">
-      <div className="profile-card" style={{ maxWidth: isAccountUnlocked ? '950px' : '500px', transition: 'max-width 0.3s ease' }}>
+  const triggerAddNewMode = () => {
+    setEditingAddressId(null);
+    setIsAddingNew(true);
+    setAddressForm({
+      name: "",
+      street: "",
+      cityStateZip: "",
+      country: "India",
+      phone: ""
+    });
+  };
 
-        <button className="profile-back-arrow" onClick={() => navigate('/products')}>
-          ← <span className="back-text">Products</span>
-        </button>
+  const triggerEditMode = (address) => {
+    setEditingAddressId(address._id || address.id);
+    setIsAddingNew(false);
+    setAddressForm({
+      name: address.name || "",
+      street: address.street || "",
+      cityStateZip: address.cityStateZip || "",
+      country: address.country || "India",
+      phone: address.phone || ""
+    });
+  };
 
-        <div className="profile-avatar-large">
-          {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-        </div>
+  const handleDeleteAddress = async (addressId) => {
+    if (!window.confirm("Delete this delivery address?")) return;
 
-        {/* STEP A: Phone Notice Box */}
-        {!hasPhone ? (
-          <div className="profile-locked-container mandatory-phone-box">
-            <h2>Phone Number Required</h2>
-            <p className="lock-notice">Link a phone number to view details. Checking live records...</p>
+    try {
+      setActionLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${userId}/addresses/${addressId}`, {
+        method: "DELETE",
+        headers: getHeaders()
+      });
+      const data = await response.json();
 
-            {showForm && (
-              <form onSubmit={handleUpdatePhoneSubmit} className="pin-form" style={{ marginTop: '15px' }}>
-                {needsCountryCode && (
-                  <div className="country-select-box" style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '5px', color: '#ff6b6b' }}>
-                      ⚠️ Missing country code. Please select your country:
-                    </label>
-                    <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px' }}>
-                      {countryCodes.map((c) => (<option key={c.code} value={c.code}>{c.label}</option>))}
-                    </select>
-                  </div>
-                )}
-                <label>Enter Phone Number (e.g. +91XXXXXXXXXX):</label>
-                <input type="text" placeholder="e.g. +919876543210" value={phoneInput} onChange={handlePhoneChange} required disabled={loading} />
-                <button type="submit" className="view-account-btn" disabled={loading}>
-                  {loading ? 'Saving details...' : 'Link Phone Number'}
-                </button>
-              </form>
-            )}
+      if (!response.ok) throw new Error(data.message || "Unable to delete address.");
+
+      setAddresses(data.addresses || []);
+      setSelectedAddressId(data.selectedAddressId || "");
+      alert(data.message || "Address deleted.");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (typeof logout === "function") await logout();
+    } finally {
+      navigate("/");
+    }
+  };
+
+  if (pageLoading || !profileReady) {
+    return (
+      <div className="profile-page-loading">
+        <div className="profile-loading-box">
+          <div className="profile-loading-logo">
+            <img src="/Zypcart.png" alt="Zypcart" />
           </div>
-        ) :
+          <div className="profile-loading-spinner" />
+          <h2>Preparing your account</h2>
+          <p>Loading your account details...</p>
+        </div>
+      </div>
+    );
+  }
 
-          /* STEP B: PIN Authorization Firewall */
-          !isAccountUnlocked ? (
-            <div className="profile-locked-container">
-              <h2>Account Details Protected</h2>
-              {hasSetPin ? (
-                <form onSubmit={handleVerifyPin} className="pin-form">
-                  <label>Enter your 4-digit Account PIN:</label>
-                  <input type="password" maxLength="4" placeholder="Enter PIN" value={pinInput} onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))} required />
-                  <button type="submit" className="view-account-btn" disabled={loading}>Verify & Open Profile</button>
-                </form>
-              ) : (
-                <form onSubmit={handleSetupPin} className="pin-form">
-                  <label>Create a secure 4-digit access PIN:</label>
-                  <input type="password" maxLength="4" placeholder="Create PIN" value={pinInput} onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))} required />
-                  <button type="submit" className="view-account-btn" disabled={loading}>Set PIN & Unlock View</button>
+  return (
+    <div className="profile-page">
+      <div className="profile-container">
+        <header className="profile-header">
+          <button className="back-button" onClick={() => navigate("/products")}>
+            <span>←</span>
+            Back to products
+          </button>
+          <div className="header-title">
+            <h1>Account</h1>
+          </div>
+        </header>
+
+        {!hasPhone && (
+          <section className="account-card phone-required-card">
+            <div className="status-icon">!</div>
+            <div className="status-content">
+              <h2>Add your phone number</h2>
+              <p>A phone number is required to protect your account.</p>
+              {showPhoneForm && (
+                <form className="profile-form compact-form" onSubmit={handleUpdatePhoneSubmit}>
+                  {needsCountryCode && (
+                    <div className="country-warning">Select your country code before continuing.</div>
+                  )}
+                  <div className="form-group">
+                    <label>Phone number</label>
+                    <input
+                      type="text"
+                      placeholder="+91 9876543210"
+                      value={phoneInput}
+                      onChange={handlePhoneChange}
+                      disabled={actionLoading}
+                      required
+                    />
+                  </div>
+                  {needsCountryCode && (
+                    <div className="form-group">
+                      <label>Country</label>
+                      <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}>
+                        {countryCodes.map((item) => (
+                          <option key={item.code} value={item.code}>{item.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <button className="primary-button" type="submit" disabled={actionLoading}>
+                    {actionLoading ? "Saving..." : "Add phone number"}
+                  </button>
                 </form>
               )}
             </div>
-          ) : (
+          </section>
+        )}
 
-            /* STEP C + D: Split Two-Column Side-by-Side Dashboard Layout */
-            <div className="profile-unlocked-layout-grid" style={{ display: 'flex', gap: '40px', marginTop: '20px', flexWrap: 'wrap' }}>
+        {hasPhone && !isAccountUnlocked && (
+          <div className="unlock-wrapper">
+            <div className="unlock-card">
+              <div className="lock-icon">•••</div>
+              <h2>{hasSetPin ? "Enter your PIN" : "Create your account PIN"}</h2>
+              <p>{hasSetPin ? "Enter your 4-digit PIN to access your account." : "Set a 4-digit PIN to protect your account details."}</p>
 
-              {/* LEFT SIDE COLUMN: User Info & Account Security Context Forms */}
-              <div className="profile-left-column" style={{ flex: '1 1 400px', minWidth: '320px', textAlign: 'left' }}>
-                <div className="profile-info">
-                  <h1 className="profile-welcome-text" style={{ margin: '0 0 10px 0' }}>Welcome, {user?.name || 'User'}</h1>
-                  <div className="profile-role-wrapper" style={{ marginBottom: '20px' }}>
-                    <span className={`role-badge ${user?.role === 'seller' ? 'badge-seller' : 'badge-buyer'}`}>
-                      {user?.role || 'Guest'} Account
-                    </span>
-                  </div>
+              <form className="profile-form" onSubmit={hasSetPin ? handleVerifyPin : handleSetupPin}>
+                <div className="pin-input-wrapper">
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength="4"
+                    placeholder="••••"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+                    autoFocus
+                    required
+                  />
                 </div>
+                <button className="primary-button full-button" type="submit" disabled={actionLoading}>
+                  {actionLoading ? "Please wait..." : hasSetPin ? "Unlock account" : "Create PIN"}
+                </button>
+              </form>
 
-                <div className="account-secure-details" style={{ backgroundColor: '#fcfcfc', padding: '20px', borderRadius: '8px', border: '1px solid #eaeaea' }}>
-                  <h3 style={{ marginTop: '0' }}>Secure Account Management</h3>
-                  <p><strong>Email:</strong> {sensitiveData.email || 'N/A'}</p>
-                  <p><strong>Phone:</strong> {sensitiveData.phone || 'Processing Sync...'}</p>
+              <div className="secure-note">Your account information is protected.</div>
+            </div>
+          </div>
+        )}
 
-                  <button className="toggle-pwd-btn" style={{ width: '100%', marginBottom: '10px' }} onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? "⚠️ Hide Password Data" : "👁️ Show Password Data"}
-                  </button>
-
-                  {showPassword && (
-                    <div style={{ padding: '8px', background: '#e9ecef', borderRadius: '4px', fontSize: '0.82rem', wordBreak: 'break-all', marginBottom: '15px' }}>
-                      <strong>Value:</strong> {user?.org_password}
-                    </div>
-                  )}
-
-                  <div className="profile-button-management-row" style={{ display: 'flex', gap: '10px' }}>
-                    <button className="change-pwd-link-btn" onClick={() => { setIsChangingPassword(!isChangingPassword); setIsChangingPin(false); }}>⚙️ Password</button>
-                    <button className="change-pin-link-btn" onClick={() => { setIsChangingPin(!isChangingPin); setIsChangingPassword(false); }}>🔑 Access PIN</button>
-                  </div>
-
-                  {isChangingPassword && (
-                    <form onSubmit={handleChangePasswordSubmit} className="verification-sub-card" style={{ marginTop: '15px' }}>
-                      <h4>Modify Password</h4>
-                      <input type="password" placeholder="Current Password" value={currentPasswordInput} onChange={(e) => setCurrentPasswordInput(e.target.value)} required />
-                      <input type="password" placeholder="New Password" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} required />
-                      <button type="submit" className="confirm-verify-btn" disabled={loading}>Update Password</button>
-                    </form>
-                  )}
-
-                  {isChangingPin && (
-                    <form onSubmit={handleChangePinSubmit} className="verification-sub-card" style={{ marginTop: '15px' }}>
-                      <h4>Modify Account Access PIN</h4>
-                      <input type="password" placeholder="Enter Account Password" value={confirmPinPassword} onChange={(e) => setConfirmPinPassword(e.target.value)} required />
-                      <input type="password" maxLength="4" placeholder="Enter New 4-Digit PIN" value={newPinInput} onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, ''))} required />
-                      <button type="submit" className="confirm-verify-btn" disabled={loading}>Update PIN</button>
-                    </form>
-                  )}
+        {hasPhone && isAccountUnlocked && (
+          <>
+            <section className="profile-overview account-card">
+              <div className="profile-avatar">{(user?.name || "U").charAt(0).toUpperCase()}</div>
+              <div className="profile-overview-info">
+                <div className="profile-name-row">
+                  <h2>{user?.name || "User"}</h2>
+                  <span className={`role-badge ${user?.role === "seller" ? "seller" : "buyer"}`}>
+                    {user?.role === "seller" ? "Seller" : "Buyer"}
+                  </span>
                 </div>
-
-                {/* TWILIO PROMO PANELS SECTION */}
-                <div style={{ marginTop: '20px' }}>
-                  {user?.role === 'buyer' && !isVerifyingSeller && (
-                    <div className="role-action-promo buyer-promo">
-                      <p>Want to start selling your own merchandise on Zypcart ?</p>
-                      <button className="promo-btn action-buyer" onClick={() => { setIsVerifyingSeller(true); handleRequestUpgradeOtp(); }}>
-                        🚀 Create Seller Account (Verify via SMS)
-                      </button>
-                    </div>
-                  )}
-
-                  {isVerifyingSeller && (
-                    <div className="verification-sub-card">
-                      <h4>Activate Merchant Operational Privileges</h4>
-                      {isUpgradeOtpSent ? (
-                        <form onSubmit={handleConfirmUpgradeSubmit}>
-                          <p>Enter the 4-digit activation token code sent to your device:</p>
-                          <input type="text" maxLength="4" placeholder="Enter Activation OTP" value={upgradeOtpInput} onChange={(e) => setUpgradeOtpInput(e.target.value.replace(/\D/g, ''))} required />
-                          <div className="action-btn-group">
-                            <button type="submit" className="confirm-verify-btn" disabled={loading}>Confirm Upgrade</button>
-                            <button type="button" className="cancel-btn" onClick={() => setIsVerifyingSeller(false)}>Cancel</button>
-                          </div>
-                        </form>
-                      ) : <p>Generating secure upgrade SMS pipelines...</p>}
-                    </div>
-                  )}
-
-                  {user?.role === 'seller' && !isDeactivatingSeller && (
-                    <div className="role-action-promo seller-promo">
-                      <p>Your shop setup is currently active.</p>
-                      <button className="promo-btn deactivate-seller-btn" onClick={handleRequestDeactivation} disabled={loading}>
-                        ⚠️ Deactivate Seller Account via OTP
-                      </button>
-                    </div>
-                  )}
-
-                  {isDeactivatingSeller && (
-                    <form onSubmit={handleConfirmDeactivationSubmit} className="verification-sub-card">
-                      <h4>Confirm Deactivation</h4>
-                      <p>Enter the 4-digit verification code texted to your phone line:</p>
-                      <input type="text" maxLength="4" placeholder="Enter Deactivation OTP" value={deactivateOtpInput} onChange={(e) => setDeactivateOtpInput(e.target.value.replace(/\D/g, ''))} required />
-                      <div className="action-btn-group">
-                        <button type="submit" className="confirm-deactivate-btn" disabled={loading}>Confirm Deactivate</button>
-                        <button type="button" className="cancel-btn" onClick={() => setIsDeactivatingSeller(false)}>Cancel</button>
-                      </div>
-                    </form>
-                  )}
-                </div>
+                <p>{sensitiveData.email || user?.email || "Email unavailable"}</p>
+                <span className="account-status">Account active</span>
               </div>
+            </section>
 
-              {/* RIGHT SIDE COLUMN: Amazon Delivery Address Selector System */}
-              <div className="profile-right-column address-management-section" style={{ flex: '1 1 400px', minWidth: '320px', textAlign: 'left', borderLeft: '1px solid #e7e7e7', paddingLeft: '40px' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '15px', color: '#111' }}>
-                  All addresses ({addresses.length})
-                </h3>
-
-                {/* Dynamic Address Modification Forms */}
-                {(isAddingNew || editingAddressId) && (
-                  <form onSubmit={handleSaveAddressSubmit} style={{ marginBottom: '20px', background: '#f7f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #d5d9d9' }}>
-                    <h4 style={{ margin: '0 0 10px 0' }}>{editingAddressId ? 'Update Address Details' : 'Enter New Shipping Destination'}</h4>
-                    <input type="text" placeholder="Full Name" value={addressForm.name} onChange={e => setAddressForm({ ...addressForm, name: e.target.value })} style={{ width: '100%', padding: '6px', marginBottom: '8px' }} required />
-                    <input type="text" placeholder="Street Address" value={addressForm.street} onChange={e => setAddressForm({ ...addressForm, street: e.target.value })} style={{ width: '100%', padding: '6px', marginBottom: '8px' }} required />
-                    <input type="text" placeholder="City, State, Zipcode" value={addressForm.cityStateZip} onChange={e => setAddressForm({ ...addressForm, cityStateZip: e.target.value })} style={{ width: '100%', padding: '6px', marginBottom: '8px' }} required />
-                    <input type="text" placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} style={{ width: '100%', padding: '6px', marginBottom: '8px' }} required />
-                    <input type="text" placeholder="Phone Number" value={addressForm.phone} onChange={e => setAddressForm({ ...addressForm, phone: e.target.value })} style={{ width: '100%', padding: '6px', marginBottom: '10px' }} required />
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="submit" style={{ padding: '6px 12px', background: '#ffd814', border: '1px solid #fcd200', borderRadius: '4px', cursor: 'pointer' }} disabled={loading}>Save</button>
-                      <button type="button" onClick={() => { setIsAddingNew(false); setEditingAddressId(null); }} style={{ padding: '6px 12px', background: '#fff', border: '1px solid #a8acac', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+            <div className="profile-grid">
+              <div className="profile-main-column">
+                <section className="account-card">
+                  <div className="section-header">
+                    <div>
+                      <h3>Personal information</h3>
                     </div>
-                  </form>
-                )}
+                  </div>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <span className="info-label">Email</span>
+                      <strong>{sensitiveData.email || user?.email || "Not available"}</strong>
+                      <span className="verified-label">Verified</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Phone</span>
+                      <strong>{sensitiveData.phone || user?.phone || "Not available"}</strong>
+                      <span className="verified-label">Verified</span>
+                    </div>
+                  </div>
+                </section>
 
-                {/* Address Array Mapping Selector Rendering Block */}
-                <div className="address-list-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {addresses.map((addr) => {
-                    const targetId = addr._id;
-                    const isSelected = selectedAddressId === targetId;
+                <section className="account-card">
+                  <div className="section-header">
+                    <div>
+                      <h3>Security</h3>
+                    </div>
+                    <span className="security-badge">Protected</span>
+                  </div>
 
-                    return (
-                      <div
-                        key={targetId}
-                        onClick={() => handleSelectActiveAddressId(targetId)}
-                        style={{
-                          padding: '16px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: '1px solid #d5d9d9',
-                          backgroundColor: isSelected ? '#f7f9fa' : '#ffffff',
-                          transition: 'background-color 0.2s ease',
+                  <div className="security-list">
+                    <div className="security-row">
+                      <div className="security-row-icon">Aa</div>
+                      <div className="security-row-content">
+                        <strong>Password</strong>
+                        <span>Your password is securely protected.</span>
+                      </div>
+                      <button
+                        className="secondary-button"
+                        onClick={() => {
+                          setIsChangingPassword((v) => !v);
+                          setIsChangingPin(false);
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                          <div style={{ paddingTop: '2px' }}>
-                            <input
-                              type="radio"
-                              name="delivery_address_selection"
-                              checked={isSelected}
-                              onChange={() => handleSelectActiveAddressId(targetId)}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                          </div>
+                        {isChangingPassword ? "Cancel" : "Change"}
+                      </button>
+                    </div>
 
-                          <div style={{ fontSize: '14px', lineHeight: '1.4', color: '#111', flex: 1 }}>
-                            <p style={{ fontWeight: '700', margin: '0 0 4px 0' }}>{addr.name}</p>
-                            <p style={{ margin: '0 0 2px 0' }}>{addr.street}</p>
-                            <p style={{ margin: '0 0 4px 0' }}>{addr.cityStateZip}, {addr.country}</p>
-                            <p style={{ margin: '0', color: '#565959' }}>Phone number: {addr.phone}</p>
-                          </div>
+                    {isChangingPassword && (
+                      <form className="security-form" onSubmit={handleChangePasswordSubmit}>
+                        <div className="form-group">
+                          <label>Current password</label>
+                          <input type="password" value={currentPasswordInput} onChange={(e) => setCurrentPasswordInput(e.target.value)} required />
                         </div>
+                        <div className="form-group">
+                          <label>New password</label>
+                          <input type="password" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} required />
+                        </div>
+                        <button className="primary-button" disabled={actionLoading} type="submit">
+                          {actionLoading ? "Updating..." : "Update password"}
+                        </button>
+                      </form>
+                    )}
 
-                        {/* 🔴 Inline Edit button displays ONLY inside the active selected address element */}
-                        {isSelected && (
-                          <div style={{ marginTop: '14px', paddingLeft: '30px' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                triggerEditMode(addr);
-                              }}
-                              style={{
-                                width: '100%',
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #a8acac',
-                                borderRadius: '20px',
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 5px rgba(213,217,217,.5)',
-                                marginBottom: '10px'
-                              }}
-                            >
-                              Edit address
-                            </button>
-
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Stops interaction from re-triggering radio selectors
-                                handleDeleteAddress(targetId);
-                              }}
-                              className="amazon-pill-btn"
-                              style={{
-                                flex: 1,
-                                backgroundColor: '#fff',
-                                borderColor: '#cc0000',
-                                color: '#cc0000'
-                              }}
-                            >
-                              Delete
-                            </button>
-
-                            {/* <span
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ color: '#007185', fontSize: '13px', cursor: 'pointer', display: 'block' }}
-                            >
-                              Add delivery instructions
-                            </span> */}
-                          </div>
-                        )}
+                    <div className="security-row">
+                      <div className="security-row-icon">•••</div>
+                      <div className="security-row-content">
+                        <strong>Account PIN</strong>
+                        <span>4-digit PIN protects your profile.</span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <button
+                        className="secondary-button"
+                        onClick={() => {
+                          setIsChangingPin((v) => !v);
+                          setIsChangingPassword(false);
+                        }}
+                      >
+                        {isChangingPin ? "Cancel" : "Change"}
+                      </button>
+                    </div>
 
-                {/* Add New Base Action button template segment */}
-                <div style={{ marginTop: '20px', borderTop: '1px solid #e7e7e7', paddingTop: '20px' }}>
-                  <h4 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '10px' }}>Add delivery address</h4>
-                  <button
-                    onClick={triggerAddNewMode}
-                    style={{
-                      width: '100%',
-                      padding: '8px 16px',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #a8acac',
-                      borderRadius: '20px',
-                      fontSize: '13px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 5px rgba(213,217,217,.5)'
-                    }}
-                  >
-                    Add a new delivery address
-                  </button>
-                </div>
+                    {isChangingPin && (
+                      <form className="security-form" onSubmit={handleChangePinSubmit}>
+                        <div className="form-group">
+                          <label>Account password</label>
+                          <input type="password" value={confirmPinPassword} onChange={(e) => setConfirmPinPassword(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                          <label>New 4-digit PIN</label>
+                          <input
+                            type="password"
+                            inputMode="numeric"
+                            maxLength="4"
+                            value={newPinInput}
+                            onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, ""))}
+                            required
+                          />
+                        </div>
+                        <button className="primary-button" disabled={actionLoading} type="submit">
+                          {actionLoading ? "Updating..." : "Update PIN"}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </section>
+
+                {user?.role === "buyer" && !isVerifyingSeller && (
+                  <section className="seller-card">
+                    <div>
+                      <span className="seller-card-label">SELL ON ZYPCART</span>
+                      <h3>Start selling your products</h3>
+                      <p>Upgrade your account and create your own seller store.</p>
+                    </div>
+                    <button
+                      className="primary-button"
+                      disabled={actionLoading}
+                      onClick={() => {
+                        setIsVerifyingSeller(true);
+                        handleRequestUpgradeOtp();
+                      }}
+                    >
+                      Become a seller
+                    </button>
+                  </section>
+                )}
+
+                {isVerifyingSeller && (
+                  <section className="account-card verification-card">
+                    <div className="section-header">
+                      <div>
+                        <h3>Verify seller account</h3>
+                        <p>Enter the verification code sent to your phone.</p>
+                      </div>
+                    </div>
+                    {isUpgradeOtpSent ? (
+                      <form className="profile-form" onSubmit={handleConfirmUpgradeSubmit}>
+                        <div className="form-group">
+                          <label>Verification code</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength="4"
+                            placeholder="0000"
+                            value={upgradeOtpInput}
+                            onChange={(e) => setUpgradeOtpInput(e.target.value.replace(/\D/g, ""))}
+                            required
+                          />
+                        </div>
+                        <div className="button-row">
+                          <button className="primary-button" type="submit" disabled={actionLoading}>Confirm</button>
+                          <button className="secondary-button" type="button" onClick={() => { setIsVerifyingSeller(false); setIsUpgradeOtpSent(false); }}>Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="loading-message">Sending verification code...</div>
+                    )}
+                  </section>
+                )}
+
+                {user?.role === "seller" && !isDeactivatingSeller && (
+                  <section className="account-card seller-active-card">
+                    <div>
+                      <span className="seller-active-status">ACTIVE SELLER</span>
+                      <h3>Your seller account is active</h3>
+                      <p>Your seller tools and store are currently enabled.</p>
+                    </div>
+                    <button className="danger-outline-button" disabled={actionLoading} onClick={handleRequestDeactivation}>
+                      Deactivate seller account
+                    </button>
+                  </section>
+                )}
+
+                {isDeactivatingSeller && (
+                  <section className="account-card danger-card">
+                    <h3>Deactivate seller account</h3>
+                    <p>Enter the verification code sent to your phone.</p>
+                    <form className="profile-form" onSubmit={handleConfirmDeactivationSubmit}>
+                      <div className="form-group">
+                        <label>Verification code</label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength="4"
+                          placeholder="0000"
+                          value={deactivateOtpInput}
+                          onChange={(e) => setDeactivateOtpInput(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                      </div>
+                      <div className="button-row">
+                        <button className="danger-button" disabled={actionLoading} type="submit">Confirm deactivation</button>
+                        <button className="secondary-button" type="button" onClick={() => { setIsDeactivatingSeller(false); setDeactivateOtpInput(""); }}>Cancel</button>
+                      </div>
+                    </form>
+                  </section>
+                )}
               </div>
 
-            </div>
-          )}
+              <aside className="profile-side-column">
+                <section className="account-card addresses-card">
+                  <div className="section-header">
+                    <div>
+                      <h3>Delivery addresses</h3>
+                    </div>
+                    <span className="address-count">{addresses.length}</span>
+                  </div>
 
-        <button
-          className="profile-logout-btn"
-          style={{ marginTop: '30px' }}
-          onClick={() => {
-            logout();
-            navigate('/');
-          }}
-        >
-          Logout of Account
-        </button>
+                  {(isAddingNew || editingAddressId) && (
+                    <form className="address-form" onSubmit={handleSaveAddressSubmit}>
+                      <div className="address-form-header">
+                        <h4>{editingAddressId ? "Edit address" : "New address"}</h4>
+                        <button type="button" className="close-form-button" onClick={resetAddressForm}>×</button>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Full name</label>
+                        <input type="text" value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} required />
+                      </div>
+                      <div className="form-group">
+                        <label>Street address</label>
+                        <input type="text" value={addressForm.street} onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })} required />
+                      </div>
+                      <div className="form-group">
+                        <label>City, state & ZIP</label>
+                        <input type="text" value={addressForm.cityStateZip} onChange={(e) => setAddressForm({ ...addressForm, cityStateZip: e.target.value })} required />
+                      </div>
+                      <div className="address-two-column">
+                        <div className="form-group">
+                          <label>Country</label>
+                          <input type="text" value={addressForm.country} onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })} required />
+                        </div>
+                        <div className="form-group">
+                          <label>Phone</label>
+                          <input type="text" value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} required />
+                        </div>
+                      </div>
+                      <button className="primary-button full-button" disabled={actionLoading} type="submit">
+                        {actionLoading ? "Saving..." : editingAddressId ? "Save changes" : "Add address"}
+                      </button>
+                    </form>
+                  )}
+
+                  {addressesLoading ? (
+                    <div className="address-loading">
+                      <div className="small-spinner" />
+                      <span>Loading addresses...</span>
+                    </div>
+                  ) : (
+                    <div className="address-list">
+                      {addresses.length === 0 && (
+                        <div className="empty-address">
+                          <div className="empty-address-icon">+</div>
+                          <strong>No delivery addresses</strong>
+                          <span>Add an address to make checkout faster.</span>
+                        </div>
+                      )}
+
+                      {addresses.map((address) => {
+                        const addressId = address._id || address.id;
+                        const isSelected = selectedAddressId === addressId;
+
+                        return (
+                          <div
+                            key={addressId}
+                            className={`address-item ${isSelected ? "selected" : ""}`}
+                            onClick={() => handleSelectActiveAddressId(addressId)}
+                          >
+                            <div className="address-top">
+                              <input
+                                type="radio"
+                                name="delivery-address"
+                                checked={isSelected}
+                                onChange={() => handleSelectActiveAddressId(addressId)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="address-content">
+                                <strong>{address.name}</strong>
+                                <span>{address.street}</span>
+                                <span>{address.cityStateZip}</span>
+                                <span>{address.country}</span>
+                                <span className="address-phone">{address.phone}</span>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <div className="address-actions">
+                                <button className="text-button" onClick={(e) => { e.stopPropagation(); triggerEditMode(address); }}>Edit</button>
+                                <button className="text-button danger-text" onClick={(e) => { e.stopPropagation(); handleDeleteAddress(addressId); }}>Delete</button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!addressesLoading && !isAddingNew && !editingAddressId && (
+                    <button className="add-address-button" onClick={triggerAddNewMode}>
+                      <span>+</span>
+                      Add delivery address
+                    </button>
+                  )}
+                </section>
+              </aside>
+            </div>
+
+            <div className="account-footer">
+              <button className="logout-button" onClick={handleLogout}>Log out</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

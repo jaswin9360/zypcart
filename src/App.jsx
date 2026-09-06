@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/context/AuthContext';
 import Login from './components/pages/Login';
 import Register from './components/pages/Register';
-import Products from './components/pages/Products';
+import Products from './components/pages/products';
 import Cart from './components/pages/Cart';
 import Checkout from './components/pages/Checkout';
 import Profile from './components/pages/Profile';
